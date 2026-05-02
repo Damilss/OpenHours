@@ -41,12 +41,12 @@ create table documents (
 
 -- ============================================================
 -- Student Queries (logged for analytics)
--- Every question a student asks gets recorded here
+-- Stores extracted topic keywords only — never raw question text (privacy)
 -- ============================================================
 create table student_queries (
   id uuid primary key default gen_random_uuid(),
   course_id uuid references courses(id),
-  question text not null,
+  topics text[] default '{}',          -- e.g. {"binary search", "arrays"}
   suggested_booking boolean default false,
   created_at timestamp default now()
 );
