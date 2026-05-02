@@ -3,15 +3,15 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e8e6df] px-4 text-zinc-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#c5d5c0] via-[#e8e6df] to-[#d4c5d8] px-4 text-zinc-900">
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
           <Image
             src="/logo.jpg"
             alt="Open Hours logo"
-            width={160}
-            height={160}
+            width={184}
+            height={184}
             className="mx-auto rounded-2xl"
             priority
           />
