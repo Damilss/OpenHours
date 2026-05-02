@@ -7,8 +7,19 @@ import pypdf
 # PPTX parsing
 from pptx import Presentation
 
-# Video/audio transcription
-import whisper
+# whisper is an optional dependency — imported lazily in _parse_audio
+# Install with: pip install git+https://github.com/openai/whisper.git
+
+# Cached Whisper model — loaded once on first use, reused for all subsequent requests
+_whisper_model = None
+
+
+def _get_whisper_model():
+    global _whisper_model
+    if _whisper_model is None:
+        import whisper
+        _whisper_model = whisper.load_model("base")
+    return _whisper_model
 
 
 CHUNK_SIZE = 500  # target tokens per chunk (approximate by words)
@@ -56,7 +67,14 @@ def _parse_pptx(file_path: str) -> List[str]:
 
 def _parse_audio(file_path: str) -> List[str]:
     """Transcribe audio/video using OpenAI Whisper and split into chunks."""
-    model = whisper.load_model("base")
+    try:
+        import whisper  # noqa: F401 — validates whisper is installed
+    except ImportError:
+        raise RuntimeError(
+            "Whisper is not installed. Install it with: "
+            "pip install git+https://github.com/openai/whisper.git"
+        )
+    model = _get_whisper_model()
     result = model.transcribe(file_path)
     transcript = result.get("text", "")
     return _chunk_text(transcript)
@@ -64,8 +82,8 @@ def _parse_audio(file_path: str) -> List[str]:
 
 def _chunk_text(text: str) -> List[str]:
     """
-    Split text into chunks of approximately CHUNK_SIZE words.
-    Tries to split on sentence boundaries where possible.
+    Split text into chunks of approximately CHUNK_SIZE whitespace-delimited words.
+    Chunks are created strictly by word count and do not preserve sentence boundaries.
     """
     words = text.split()
     chunks = []

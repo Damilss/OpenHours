@@ -3,6 +3,9 @@ from services.analytics import get_struggle_topics, get_summary_stats
 
 router = APIRouter()
 
+# TODO (before deployment): Verify Supabase JWT and assert the caller owns the
+# course_id they are querying. Currently any caller can read any course's analytics.
+
 
 @router.get("/{course_id}")
 async def get_analytics(course_id: str):

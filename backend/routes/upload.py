@@ -1,10 +1,14 @@
 import os
-import uuid
+import tempfile
+from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from services.parser import parse_file
 from services.embeddings import embed_and_store
 
 router = APIRouter()
+
+# TODO (before deployment): Verify Supabase JWT and assert the caller is a professor
+# who owns the course_id they are uploading to.
 
 
 @router.post("/")
@@ -30,13 +34,12 @@ async def upload_file(
             detail=f"Unsupported file type: {file.content_type}",
         )
 
-    # Read file bytes
-    contents = await file.read()
-
-    # Save temporarily so parsers can work with it
-    tmp_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
-    with open(tmp_path, "wb") as f:
-        f.write(contents)
+    # Stream file directly to disk — avoids loading entire file into memory
+    suffix = Path(file.filename).suffix if file.filename else ""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        while chunk := await file.read(1024 * 1024):  # 1MB chunks
+            tmp.write(chunk)
+        tmp_path = tmp.name
 
     try:
         # Parse text from file
