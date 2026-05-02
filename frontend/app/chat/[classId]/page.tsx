@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, use } from "react";
-import { addStruggle, detectTopic, getStrugglesForClass } from "@/lib/struggles";
+import { addStruggle, detectTopic } from "@/lib/struggles";
 import type { Struggle } from "@/lib/struggles";
 
 interface Message {
@@ -111,19 +111,12 @@ export default function ChatPage({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState<"history" | "struggles">("history");
-  const [classStruggles, setClassStruggles] = useState<Struggle[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const activeConvo = conversations.find((c) => c.id === activeConvoId);
   const messages = activeConvo?.messages ?? [];
   const className = CLASS_NAMES[classId] ?? "Class";
-
-  // Load struggles from localStorage
-  useEffect(() => {
-    setClassStruggles(getStrugglesForClass(classId));
-  }, [classId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -192,7 +185,6 @@ export default function ChatPage({
       timestamp: Date.now(),
     };
     addStruggle(struggle);
-    setClassStruggles((prev) => [...prev, struggle]);
 
     setInput("");
     setIsLoading(true);
@@ -225,14 +217,6 @@ export default function ChatPage({
     }
   }
 
-  // Compute topic counts for the struggles tab
-  const topicCounts = new Map<string, number>();
-  for (const s of classStruggles) {
-    topicCounts.set(s.topic, (topicCounts.get(s.topic) ?? 0) + 1);
-  }
-  const sortedTopics = Array.from(topicCounts.entries())
-    .sort((a, b) => b[1] - a[1]);
-
   return (
     <div
       className="flex h-screen bg-[#e9e7e0]"
@@ -243,146 +227,52 @@ export default function ChatPage({
         className={`${sidebarOpen ? "w-72" : "w-0"} shrink-0 overflow-hidden border-r border-[#d4d2cb] bg-white/60 backdrop-blur-sm transition-all duration-200`}
       >
         <div className="flex h-full w-72 flex-col">
-          {/* Sidebar tabs */}
-          <div className="flex border-b border-[#d4d2cb]">
+          {/* Sidebar header */}
+          <div className="flex items-center justify-between border-b border-[#d4d2cb] px-4 py-3">
+            <span className="text-sm font-semibold text-[#2d4a3e]">{className} History</span>
             <button
-              onClick={() => setSidebarTab("history")}
-              className={`flex-1 px-4 py-3 text-xs font-semibold transition-colors ${
-                sidebarTab === "history"
-                  ? "border-b-2 border-[#2d4a3e] text-[#2d4a3e]"
-                  : "text-zinc-400 hover:text-zinc-600"
-              }`}
+              onClick={startNewChat}
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2d4a3e] transition-colors hover:bg-[#2d4a3e]/10"
+              aria-label="New chat"
             >
-              History
-            </button>
-            <button
-              onClick={() => setSidebarTab("struggles")}
-              className={`flex-1 px-4 py-3 text-xs font-semibold transition-colors ${
-                sidebarTab === "struggles"
-                  ? "border-b-2 border-[#2d4a3e] text-[#2d4a3e]"
-                  : "text-zinc-400 hover:text-zinc-600"
-              }`}
-            >
-              My Struggles
-              {classStruggles.length > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2d4a3e] px-1 text-[10px] font-bold text-white">
-                  {classStruggles.length}
-                </span>
-              )}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              New
             </button>
           </div>
 
-          {sidebarTab === "history" ? (
-            <>
-              {/* New chat button */}
-              <div className="flex items-center justify-between border-b border-[#d4d2cb] px-4 py-2">
-                <span className="text-xs text-zinc-400">{className}</span>
-                <button
-                  onClick={startNewChat}
-                  className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2d4a3e] transition-colors hover:bg-[#2d4a3e]/10"
-                  aria-label="New chat"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 5v14" />
-                    <path d="M5 12h14" />
-                  </svg>
-                  New
-                </button>
-              </div>
-
-              {/* Conversation list */}
-              <nav className="flex-1 overflow-y-auto p-2">
-                {conversations.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-xs text-zinc-400">
-                    No conversations yet
-                  </p>
-                ) : (
-                  <ul className="space-y-1">
-                    {conversations.map((convo) => (
-                      <li key={convo.id}>
-                        <button
-                          onClick={() => setActiveConvoId(convo.id)}
-                          className={`w-full rounded-xl px-3 py-2.5 text-left transition-colors ${
-                            activeConvoId === convo.id
-                              ? "bg-[#2d4a3e]/10 text-[#2d4a3e]"
-                              : "text-zinc-600 hover:bg-zinc-100"
-                          }`}
-                        >
-                          <p className="truncate text-sm font-medium">
-                            {convo.title}
-                          </p>
-                          <p className="mt-0.5 text-xs text-zinc-400">
-                            {convo.messages.length} message{convo.messages.length !== 1 ? "s" : ""}
-                            {" · "}Hint level {convo.hintLevel}
-                          </p>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </nav>
-            </>
-          ) : (
-            /* Struggles tab */
-            <div className="flex-1 overflow-y-auto p-4">
-              {classStruggles.length === 0 ? (
-                <p className="py-6 text-center text-xs text-zinc-400">
-                  No struggles tracked yet. Start asking questions!
-                </p>
-              ) : (
-                <div className="space-y-5">
-                  {/* Topic breakdown */}
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                      Topics You&apos;re Working On
-                    </h3>
-                    <ul className="mt-2 space-y-1.5">
-                      {sortedTopics.map(([topic, count]) => (
-                        <li
-                          key={topic}
-                          className="flex items-center justify-between rounded-lg bg-white px-3 py-2"
-                        >
-                          <span className="text-sm text-zinc-700">{topic}</span>
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2d4a3e]/10 px-1.5 text-xs font-semibold text-[#2d4a3e]">
-                            {count}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Recent questions */}
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                      Recent Questions
-                    </h3>
-                    <ul className="mt-2 space-y-2">
-                      {classStruggles
-                        .slice()
-                        .reverse()
-                        .slice(0, 10)
-                        .map((s) => (
-                          <li
-                            key={s.id}
-                            className="rounded-lg bg-white px-3 py-2"
-                          >
-                            <p className="text-xs text-zinc-800 line-clamp-2">
-                              {s.question}
-                            </p>
-                            <div className="mt-1 flex items-center gap-2 text-[10px] text-zinc-400">
-                              <span className="rounded bg-[#2d4a3e]/10 px-1.5 py-0.5 font-medium text-[#2d4a3e]">
-                                {s.topic}
-                              </span>
-                              <span>Hint {s.hintLevel}</span>
-                            </div>
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Conversation list */}
+          <nav className="flex-1 overflow-y-auto p-2">
+            {conversations.length === 0 ? (
+              <p className="px-3 py-6 text-center text-xs text-zinc-400">
+                No conversations yet
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {conversations.map((convo) => (
+                  <li key={convo.id}>
+                    <button
+                      onClick={() => setActiveConvoId(convo.id)}
+                      className={`w-full rounded-xl px-3 py-2.5 text-left transition-colors ${
+                        activeConvoId === convo.id
+                          ? "bg-[#2d4a3e]/10 text-[#2d4a3e]"
+                          : "text-zinc-600 hover:bg-zinc-100"
+                      }`}
+                    >
+                      <p className="truncate text-sm font-medium">
+                        {convo.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-400">
+                        {convo.messages.length} message{convo.messages.length !== 1 ? "s" : ""}
+                      </p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </nav>
         </div>
       </aside>
 
