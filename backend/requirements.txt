@@ -12,7 +12,7 @@ supabase==2.10.0
 # File parsing
 pypdf==5.1.0
 python-pptx==1.0.2
-openai-whisper==20240930
+# openai-whisper==20240930  # install separately: pip install git+https://github.com/openai/whisper.git
 
 # Env vars
 python-dotenv==1.0.1

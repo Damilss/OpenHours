@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env file before anything else runs
+
 from routes import upload, ask, analytics
 
 app = FastAPI(title="OpenHours API", version="1.0.0")
