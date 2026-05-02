@@ -1,14 +1,15 @@
 # Backend README
 
-## Installing required supabase dependencies 
+## Installing backend dependencies
 
 ```bash
-
-npm install @supabase/supabase-js @supabase/ssr
-
-npx shadcn@latest add @supabase/supabase-client-nextjs
-
+python -m venv .venv
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+pip install -r requirements.txt
 ```
+
+# If requirements.txt is not available yet, install the core backend packages directly:
+# pip install fastapi uvicorn
 # OpenHours — Backend
 
 FastAPI backend handling file parsing, embeddings, RAG pipeline, and analytics.
