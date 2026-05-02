@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Book base -->
+  <path d="M20 78 L60 70 L100 78 L100 82 L60 74 L20 82 Z" fill="#2d4a3e"/>
+  <!-- Left page -->
+  <path d="M22 78 L22 45 Q40 40 58 45 L58 70 Q40 65 22 70 Z" fill="#a8c5a0"/>
+  <!-- Right page -->
+  <path d="M62 45 Q80 40 98 45 L98 78 Q80 70 62 70 Z" fill="#8db585"/>
+  <!-- Book spine shadow -->
+  <path d="M58 45 L60 44 L62 45 L62 70 L60 71 L58 70 Z" fill="#2d4a3e"/>
+  <!-- Left page circuits -->
+  <line x1="40" y1="68" x2="40" y2="50" stroke="#2d4a3e" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="58" x2="32" y2="54" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="40" y1="54" x2="48" y2="50" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="32" cy="54" r="2" fill="#2d4a3e"/>
+  <circle cx="48" cy="50" r="2" fill="#2d4a3e"/>
+  <line x1="40" y1="62" x2="34" y2="60" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="34" cy="60" r="1.5" fill="#2d4a3e"/>
+  <!-- Right page circuits -->
+  <line x1="80" y1="68" x2="80" y2="50" stroke="#2d4a3e" stroke-width="2" stroke-linecap="round"/>
+  <line x1="80" y1="58" x2="88" y2="54" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="80" y1="54" x2="72" y2="50" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="88" cy="54" r="2" fill="#2d4a3e"/>
+  <circle cx="72" cy="50" r="2" fill="#2d4a3e"/>
+  <line x1="80" y1="62" x2="86" y2="60" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="86" cy="60" r="1.5" fill="#2d4a3e"/>
+  <!-- Center branch growing up -->
+  <line x1="60" y1="44" x2="60" y2="22" stroke="#2d4a3e" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="36" x2="50" y2="30" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="60" y1="36" x2="70" y2="30" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="60" y1="30" x2="52" y2="25" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="60" y1="30" x2="68" y2="25" stroke="#2d4a3e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="50" cy="30" r="2.5" fill="#2d4a3e"/>
+  <circle cx="70" cy="30" r="2.5" fill="#2d4a3e"/>
+  <circle cx="52" cy="25" r="2" fill="#2d4a3e"/>
+  <circle cx="68" cy="25" r="2" fill="#2d4a3e"/>
+  <circle cx="60" cy="20" r="3" fill="#2d4a3e"/>
+</svg>
