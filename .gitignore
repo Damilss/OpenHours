@@ -1,2 +1,19 @@
-#Mac stuff 
+# Mac
 .DS_Store
+
+# Python virtual environment
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables (never commit secrets)
+.env
+
+# Node
+node_modules/
+
+# Next.js
+.next/
+out/
