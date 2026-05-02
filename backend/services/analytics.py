@@ -1,11 +1,22 @@
 import os
 import uuid
+import json
 from datetime import datetime
 from typing import List
+from openai import AsyncOpenAI
 from supabase import create_client
 from dotenv import load_dotenv
 
 load_dotenv()
+
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "local")
+CHAT_MODEL = os.environ.get("CHAT_MODEL", "llama3")
+
+llm_client = AsyncOpenAI(
+    api_key=LLM_API_KEY,
+    base_url=LLM_BASE_URL,
+)
 
 
 def get_supabase():
@@ -17,45 +28,91 @@ def get_supabase():
     return create_client(url, key)
 
 
+async def extract_topics(question: str) -> List[str]:
+    """
+    Use the LLM to extract 2-3 concept/topic keywords from a student question.
+    Stores topics instead of raw questions to protect student privacy.
+
+    e.g. "why doesn't my binary search work with duplicates"
+         -> ["binary search", "arrays", "edge cases"]
+    """
+    try:
+        response = await llm_client.chat.completions.create(
+            model=CHAT_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You extract academic topic keywords from student questions. "
+                        "Return ONLY a JSON array of 2-3 short topic strings. "
+                        "No explanation, no extra text. Example: [\"binary search\", \"arrays\"]"
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Extract topics from this question: {question}",
+                },
+            ],
+            temperature=0.0,
+            max_tokens=60,
+        )
+        raw = response.choices[0].message.content.strip()
+        topics = json.loads(raw)
+        if isinstance(topics, list):
+            return [str(t).lower().strip() for t in topics[:3]]
+    except Exception:
+        pass
+
+    # Fallback: return empty list rather than crashing
+    return []
+
+
 async def log_query(course_id: str, question: str, suggested_booking: bool) -> None:
-    """Log a student query for analytics. Called on every /ask request."""
+    """
+    Log a student query for analytics.
+    Extracts topic keywords from the question — never stores the raw question text.
+    Called on every /ask request.
+    """
     supabase = get_supabase()
+    topics = await extract_topics(question)
+
     supabase.table("student_queries").insert({
         "id": str(uuid.uuid4()),
         "course_id": course_id,
-        "question": question,
+        "topics": topics,               # list of keyword strings, not the question
         "suggested_booking": suggested_booking,
         "created_at": datetime.utcnow().isoformat(),
     }).execute()
 
 
 async def get_struggle_topics(course_id: str) -> List[dict]:
-    """Return the most frequently asked questions for a course."""
+    """
+    Return the most common topics students are asking about for a course.
+    Ranked by frequency — gives professors a concept-level view, not individual questions.
+    """
     supabase = get_supabase()
     result = (
         supabase.table("student_queries")
-        .select("question, suggested_booking, created_at")
+        .select("topics, suggested_booking")
         .eq("course_id", course_id)
-        .order("created_at", desc=True)
-        .limit(200)
+        .limit(500)
         .execute()
     )
 
     rows = result.data or []
-    question_counts: dict[str, dict] = {}
-    for row in rows:
-        q = row["question"].strip().lower()
-        if q not in question_counts:
-            question_counts[q] = {
-                "question": row["question"],
-                "count": 0,
-                "needed_office_hours": 0,
-            }
-        question_counts[q]["count"] += 1
-        if row.get("suggested_booking"):
-            question_counts[q]["needed_office_hours"] += 1
 
-    return sorted(question_counts.values(), key=lambda x: x["count"], reverse=True)[:20]
+    # Flatten all topic lists and count frequency
+    topic_counts: dict[str, dict] = {}
+    for row in rows:
+        for topic in row.get("topics") or []:
+            t = topic.strip().lower()
+            if t not in topic_counts:
+                topic_counts[t] = {"topic": t, "count": 0, "needed_office_hours": 0}
+            topic_counts[t]["count"] += 1
+            if row.get("suggested_booking"):
+                topic_counts[t]["needed_office_hours"] += 1
+
+    return sorted(topic_counts.values(), key=lambda x: x["count"], reverse=True)[:20]
 
 
 async def get_summary_stats(course_id: str) -> dict:
