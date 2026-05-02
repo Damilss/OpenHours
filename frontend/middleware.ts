@@ -1,14 +1,14 @@
-export { auth as middleware } from "@/auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function middleware(request: NextRequest) {
+  // Redirect root to login page
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  return NextResponse.next();
+}
 
 export const config = {
-  /*
-   * Protect every route except:
-   *  - /login (the sign-in page)
-   *  - /auth-error (the error page)
-   *  - /api/auth (NextAuth API routes)
-   *  - /_next, /favicon.ico, and static assets
-   */
-  matcher: [
-    "/((?!login|auth-error|api/auth|_next/static|_next/image|favicon\\.ico|.*\\.svg$).*)",
-  ],
+  matcher: ["/"],
 };
