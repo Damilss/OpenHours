@@ -1,11 +1,12 @@
 import os
 from typing import Any
 from openai import AsyncOpenAI
-from supabase import create_client, Client
+from supabase import create_client
 from services.embeddings import embed_text
+from dotenv import load_dotenv
 
-# Points to your friend's local LLM server instead of OpenAI
-# Supports any OpenAI-compatible server (Ollama, LM Studio, etc.)
+load_dotenv()
+
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
 LLM_API_KEY = os.environ.get("LLM_API_KEY", "local")
 CHAT_MODEL = os.environ.get("CHAT_MODEL", "llama3")
@@ -15,12 +16,7 @@ openai_client = AsyncOpenAI(
     base_url=LLM_BASE_URL,
 )
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
-MATCH_COUNT = 5  # number of chunks to retrieve from pgvector
+MATCH_COUNT = 5
 
 SYSTEM_PROMPT = """You are an AI teaching assistant for a university course.
 Your job is to help students understand course material — but you must NEVER give direct answers.
@@ -37,6 +33,15 @@ If you cannot answer from the context, respond with:
 """
 
 
+def get_supabase():
+    """Get Supabase client — only called when actually needed."""
+    url = os.environ.get("SUPABASE_URL", "")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+    if not url or not key or url == "placeholder":
+        raise RuntimeError("Supabase is not configured yet. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your .env file.")
+    return create_client(url, key)
+
+
 async def answer_question(question: str, course_id: str) -> dict[str, Any]:
     """
     RAG pipeline:
@@ -45,10 +50,10 @@ async def answer_question(question: str, course_id: str) -> dict[str, Any]:
     3. Feed chunks as context to the LLM
     4. Return a guided answer (hints, not direct answers)
     """
-    # Step 1: Embed the question
+    supabase = get_supabase()
+
     question_embedding = await embed_text(question)
 
-    # Step 2: Search pgvector for relevant chunks
     result = supabase.rpc(
         "match_documents",
         {
@@ -62,10 +67,8 @@ async def answer_question(question: str, course_id: str) -> dict[str, Any]:
     sources = [c.get("source_file", "") for c in chunks if c.get("source_file")]
     context_text = "\n\n---\n\n".join(c["content"] for c in chunks)
 
-    # Step 3: Determine if we have useful context
     suggested_booking = len(chunks) == 0
 
-    # Step 4: Build the prompt and call the local LLM
     user_message = f"""Course context:
 {context_text if context_text else "No relevant course material found."}
 
@@ -84,7 +87,6 @@ Student question:
 
     answer = response.choices[0].message.content.strip()
 
-    # If the model says it can't answer, flag for office hours booking
     cant_answer_phrases = ["don't have enough information", "book office hours", "cannot answer"]
     if any(phrase in answer.lower() for phrase in cant_answer_phrases):
         suggested_booking = True
@@ -97,10 +99,7 @@ Student question:
 
 
 async def get_common_topics(course_id: str) -> list[dict]:
-    """
-    Return the most recently stored document chunks grouped by source file.
-    Gives professors a rough view of what topics are covered.
-    """
+    supabase = get_supabase()
     result = (
         supabase.table("documents")
         .select("source_file, content")

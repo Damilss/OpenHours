@@ -2,12 +2,14 @@ import os
 import uuid
 from typing import List
 from openai import AsyncOpenAI
-from supabase import create_client, Client
+from supabase import create_client
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Points to your friend's local LLM server instead of OpenAI
-# Supports any OpenAI-compatible server (Ollama, LM Studio, etc.)
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
-LLM_API_KEY = os.environ.get("LLM_API_KEY", "local")  # most local servers accept any string
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "local")
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
 
 client = AsyncOpenAI(
@@ -15,10 +17,14 @@ client = AsyncOpenAI(
     base_url=LLM_BASE_URL,
 )
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+def get_supabase():
+    """Get Supabase client — only called when actually needed."""
+    url = os.environ.get("SUPABASE_URL", "")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+    if not url or not key or url == "placeholder":
+        raise RuntimeError("Supabase is not configured yet. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your .env file.")
+    return create_client(url, key)
 
 
 async def embed_text(text: str) -> List[float]:
@@ -35,6 +41,7 @@ async def embed_and_store(chunks: List[str], course_id: str, source_file: str) -
     Embed each chunk and store it in the Supabase documents table.
     Returns the number of chunks stored.
     """
+    supabase = get_supabase()
     rows = []
     for chunk in chunks:
         embedding = await embed_text(chunk)
@@ -46,7 +53,5 @@ async def embed_and_store(chunks: List[str], course_id: str, source_file: str) -
             "source_file": source_file,
         })
 
-    # Batch insert into Supabase
     supabase.table("documents").insert(rows).execute()
-
     return len(rows)
