@@ -6,6 +6,9 @@
 -- Enable pgvector extension (required for embeddings)
 create extension if not exists vector;
 
+-- Enable pgcrypto extension (required for gen_random_uuid())
+create extension if not exists pgcrypto;
+
 -- ============================================================
 -- Profiles (extends Supabase auth.users)
 -- ============================================================
@@ -38,6 +41,15 @@ create table documents (
   source_file text,
   created_at timestamp default now()
 );
+
+-- Index for filtering documents by course (used on every query)
+create index if not exists documents_course_id_idx
+  on documents (course_id);
+
+-- pgvector index for fast approximate nearest-neighbor search
+create index if not exists documents_embedding_idx
+  on documents using ivfflat (embedding vector_l2_ops)
+  with (lists = 100);
 
 -- ============================================================
 -- Student Queries (logged for analytics)
