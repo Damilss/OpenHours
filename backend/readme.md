@@ -115,6 +115,9 @@ Open `http://localhost:8000/docs` for the interactive API explorer (auto-generat
 | `POST` | `/upload` | Upload a file (PDF, PPTX, video) — parses, embeds, stores |
 | `POST` | `/ask` | Student asks a question — returns guided AI answer |
 | `GET` | `/analytics/{course_id}` | Professor analytics — struggle topics + summary stats |
+| `POST` | `/courses` | Create a new course |
+| `GET` | `/courses/{professor_id}` | Get all courses for a professor |
+| `DELETE` | `/courses/{course_id}` | Delete a course and all its data |
 
 ---
 

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # loads .env file before anything else runs
 
-from routes import upload, ask, analytics
+from routes import upload, ask, analytics, courses
 
 app = FastAPI(title="OpenHours API", version="1.0.0")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/upload", tags=["upload"])
 app.include_router(ask.router, prefix="/ask", tags=["ask"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+app.include_router(courses.router, prefix="/courses", tags=["courses"])
 
 
 @app.get("/")
