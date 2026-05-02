@@ -1,18 +1,11 @@
-import { signIn, auth } from "@/auth";
-import { redirect } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
-export default async function LoginPage() {
-  // If already authenticated, go straight to the app
-  const session = await auth();
-  if (session?.user) {
-    redirect("/");
-  }
-
+export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e8e6df] px-4" style={{ colorScheme: "light" }}>
+    <div className="flex min-h-screen items-center justify-center bg-[#e8e6df] px-4 text-zinc-900">
       <div className="w-full max-w-md space-y-8">
-        {/* University branding */}
+        {/* Logo */}
         <div className="text-center">
           <Image
             src="/logo.jpg"
@@ -22,57 +15,35 @@ export default async function LoginPage() {
             className="mx-auto rounded-2xl"
             priority
           />
-          <h1 className="mt-6 text-3xl font-bold tracking-tight text-zinc-900">
-            Open Hours
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Your Teacher&apos;s Open Hours AI
-          </p>
-          <p className="mt-2 text-sm text-zinc-600">
-            Sign in with your university Microsoft account to get started
+          <p className="mt-4 text-sm text-[#5a5a52]">
+            Sign in to get started
           </p>
         </div>
 
         {/* Login card */}
         <div className="rounded-2xl border border-zinc-300 bg-white p-8 shadow-xl">
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold text-zinc-900">
-                Student Login
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Use your <span className="font-medium">.edu</span> email to
-                verify your student status
-              </p>
-            </div>
-
-            <form
-              action={async () => {
-                "use server";
-                await signIn("microsoft-entra-id", { redirectTo: "/" });
-              }}
+          <div className="space-y-4">
+            {/* Microsoft login (disabled) */}
+            <button
+              type="button"
+              disabled
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-zinc-200 px-6 py-3.5 text-sm font-semibold text-zinc-400 cursor-not-allowed"
+              aria-label="Sign in with Microsoft (coming soon)"
             >
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#2f2f2f] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#1a1a1a] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                aria-label="Sign in with Microsoft"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 21 21"
+                aria-hidden="true"
               >
-                {/* Microsoft logo */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 21 21"
-                  aria-hidden="true"
-                >
-                  <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-                  <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-                  <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-                  <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-                </svg>
-                Sign in with Microsoft
-              </button>
-            </form>
+                <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+              </svg>
+              Sign in with Microsoft (coming soon)
+            </button>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -80,27 +51,58 @@ export default async function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-white px-2 text-zinc-400">
-                  University accounts only
+                  or continue as
                 </span>
               </div>
             </div>
 
-            <p className="text-center text-xs text-zinc-400">
-              Only students with a verified university email can access Open
-              Hours. Your sign-in is handled securely through Microsoft.
-            </p>
+            {/* Student login */}
+            <Link
+              href="/classes"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2d4a3e] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#1e3a2e] hover:shadow-md"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+              Student Login
+            </Link>
+
+            {/* Teacher login */}
+            <Link
+              href="/teacher"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#2d4a3e] px-6 py-3.5 text-sm font-semibold text-[#2d4a3e] shadow-sm transition-all hover:bg-[#2d4a3e] hover:text-white hover:shadow-md"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              Teacher Login
+            </Link>
           </div>
         </div>
-
-        <p className="text-center text-xs text-zinc-500">
-          Having trouble?{" "}
-          <a
-            href="mailto:support@university.edu"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Contact IT Support
-          </a>
-        </p>
       </div>
     </div>
   );
