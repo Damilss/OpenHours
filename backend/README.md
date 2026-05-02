@@ -1,3 +1,15 @@
+# Backend README
+
+## Installing backend dependencies
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+# If requirements.txt is not available yet, install the core backend packages directly:
+# pip install fastapi uvicorn
 # OpenHours — Backend
 
 FastAPI backend handling file parsing, embeddings, RAG pipeline, and analytics.
