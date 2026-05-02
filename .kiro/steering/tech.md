@@ -17,7 +17,7 @@ OpenHours is built as a full-stack AI application with RAG (Retrieval Augmented 
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Python 3.10+
 - A Supabase account (free) — [supabase.com](https://supabase.com)
 - An OpenAI API key — [platform.openai.com](https://platform.openai.com)
