@@ -9,6 +9,13 @@ load_dotenv()
 
 router = APIRouter()
 
+# TODO (before deployment): Add auth middleware to verify the Supabase JWT on all
+# routes in this file. Currently any caller who can reach the API can create/delete
+# courses or read any professor's data by guessing IDs.
+# Fix: extract the user ID from the verified JWT and assert it matches the
+# professor_id / course owner before executing any operation.
+# See: https://supabase.com/docs/guides/auth/jwts
+
 
 def get_supabase():
     url = os.environ.get("SUPABASE_URL", "")

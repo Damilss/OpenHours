@@ -38,20 +38,30 @@ async def embed_text(text: str) -> List[float]:
 
 async def embed_and_store(chunks: List[str], course_id: str, source_file: str) -> int:
     """
-    Embed each chunk and store it in the Supabase documents table.
+    Embed all chunks in a single batched API call and store in Supabase.
     Returns the number of chunks stored.
     """
     supabase = get_supabase()
+
+    # Batch all chunks in one API call instead of one request per chunk
+    response = await client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=chunks,
+    )
+
     rows = []
-    for chunk in chunks:
-        embedding = await embed_text(chunk)
+    for i, embedding_data in enumerate(response.data):
         rows.append({
             "id": str(uuid.uuid4()),
             "course_id": course_id,
-            "content": chunk,
-            "embedding": embedding,
+            "content": chunks[i],
+            "embedding": embedding_data.embedding,
             "source_file": source_file,
         })
 
-    supabase.table("documents").insert(rows).execute()
+    # Insert in batches of 100 to avoid Supabase request size limits
+    batch_size = 100
+    for i in range(0, len(rows), batch_size):
+        supabase.table("documents").insert(rows[i:i + batch_size]).execute()
+
     return len(rows)
