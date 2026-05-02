@@ -1,32 +1,69 @@
 # Tech Stack
 
-No application code exists yet. This document should be updated as the stack is decided.
+OpenHours is built as a full-stack AI application with RAG (Retrieval Augmented Generation) pipeline.
 
-## Expected Stack (Hackathon Context)
+## Stack
 
-Given this is a hackathon AI project, likely candidates include:
+| Layer | Technology |
+|---|---|
+| **Frontend** | Next.js (App Router), Tailwind CSS, shadcn/ui |
+| **Backend** | FastAPI (Python) |
+| **AI Pipeline** | LangChain, OpenAI API (embeddings + chat) |
+| **File Parsing** | PyPDF, python-pptx, OpenAI Whisper |
+| **Database** | Supabase (PostgreSQL + pgvector) |
+| **File Storage** | Supabase Storage |
+| **Auth** | Supabase Auth (professor / student roles) |
+| **Deployment** | Vercel (frontend), Railway (backend) |
 
-- **Frontend**: React, Next.js, or a simple HTML/JS interface
-- **Backend**: Node.js / Python (FastAPI or Flask)
-- **AI**: OpenAI API or similar LLM provider
-- **State/Hints**: In-memory or lightweight DB (e.g. SQLite, Supabase) to track hint usage per student
+## Prerequisites
 
-Update this file once the actual stack is confirmed.
+- Node.js 18+
+- Python 3.10+
+- A Supabase account (free) — [supabase.com](https://supabase.com)
+- An OpenAI API key — [platform.openai.com](https://platform.openai.com)
 
 ## Common Commands
 
-Once established, add commands for:
+### Frontend (Next.js)
 
 ```bash
-# Install dependencies
-# e.g. npm install / pip install -r requirements.txt
-
-# Build
-# e.g. npm run build
-
-# Run tests
-# e.g. npm test / pytest
-
-# Start dev server
-# e.g. npm run dev
+cd frontend
+npm install              # Install dependencies
+npm run dev              # Start dev server (http://localhost:3000)
+npm run build            # Build for production
+npx vercel               # Deploy to Vercel
 ```
+
+### Backend (FastAPI)
+
+```bash
+cd backend
+python -m venv venv                      # Create virtual environment
+source venv/bin/activate                 # Activate (Windows: venv\Scripts\activate)
+pip install -r requirements.txt          # Install dependencies
+uvicorn main:app --reload                # Start dev server (http://localhost:8000)
+```
+
+## Environment Variables
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# OpenAI
+OPENAI_API_KEY=your_openai_key
+
+# Backend
+FASTAPI_URL=http://localhost:8000
+```
+
+## Key API Endpoints (FastAPI)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/upload` | Accept file, parse, embed, store in pgvector |
+| `POST` | `/ask` | Take student question, search pgvector, return AI answer |
+| `GET` | `/analytics/{course_id}` | Return most common question topics |
+| `POST` | `/book` | Create office hours booking |
