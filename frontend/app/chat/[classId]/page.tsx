@@ -304,7 +304,6 @@ export default function ChatPage({
 
             <div className="h-5 w-px bg-[#d4d2cb]" />
 
-            <Image src="/logo.jpg" alt="Open Hours logo" width={28} height={28} className="rounded-md" />
             <span className="text-sm font-semibold text-[#2d4a3e]">
               {className} — {activeConvo ? activeConvo.title : "New Chat"}
             </span>
@@ -316,8 +315,7 @@ export default function ChatPage({
           <div className="mx-auto max-w-3xl px-6 py-6">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center pt-24 text-center">
-                <Image src="/logo.jpg" alt="Open Hours logo" width={80} height={80} className="rounded-2xl opacity-60" />
-                <h2 className="mt-6 text-xl font-semibold text-[#2d4a3e]">
+                <h2 className="text-xl font-semibold text-[#2d4a3e]">
                   What are you working on in {className}?
                 </h2>
                 <p className="mt-2 max-w-md text-sm text-[#5a5a52]">
@@ -387,6 +385,16 @@ export default function ChatPage({
             Open Hours guides your thinking — it won&apos;t give you direct answers.
           </p>
         </div>
+      </div>
+      {/* Fixed bottom-left logo */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <Image
+          src="/logo.jpg"
+          alt="Open Hours logo"
+          width={72}
+          height={72}
+          className="rounded-xl opacity-80 shadow-lg"
+        />
       </div>
     </div>
   );

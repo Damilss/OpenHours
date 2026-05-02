@@ -141,7 +141,6 @@ export default function TeacherDashboard() {
       <header className="border-b border-[#d4d2cb] bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <Image src="/logo.jpg" alt="Open Hours logo" width={36} height={36} className="rounded-lg" />
             <span className="text-lg font-semibold text-[#2d4a3e]">Teacher Dashboard</span>
           </div>
           <div className="flex items-center gap-3">
@@ -403,6 +402,16 @@ export default function TeacherDashboard() {
           </div>
         </div>
       </main>
+      {/* Fixed bottom-left logo */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <Image
+          src="/logo.jpg"
+          alt="Open Hours logo"
+          width={72}
+          height={72}
+          className="rounded-xl opacity-80 shadow-lg"
+        />
+      </div>
     </div>
   );
 }
