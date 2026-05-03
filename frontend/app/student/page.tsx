@@ -502,6 +502,7 @@ function SessionItem({
 }: SessionItemProps) {
   const isMenuOpen = menuOpenId === session.id;
   const isRenaming = renamingId === session.id;
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className={`relative group rounded-lg mb-0.5 ${isActive ? "bg-indigo-50" : "hover:bg-zinc-50"}`}>
@@ -538,7 +539,7 @@ function SessionItem({
           {/* Three dots menu */}
           <div className="relative shrink-0">
             <button
-              onClick={(e) => { e.stopPropagation(); onMenuToggle(session.id); }}
+              onClick={(e) => { e.stopPropagation(); onMenuToggle(session.id); setConfirmDelete(false); }}
               className={`p-1 rounded transition-colors ${isMenuOpen ? "text-zinc-600 bg-zinc-100" : "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"}`}
               aria-label="Chat options"
             >
@@ -549,26 +550,46 @@ function SessionItem({
               <div id={`menu-${session.id}`} className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 w-40 py-1">
                 <button
                   onClick={() => onRenameStart(session)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-100 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5 text-zinc-400" />
                   Rename
                 </button>
                 <button
                   onClick={() => onTogglePin(session.id, session.pinned)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-100 transition-colors"
                 >
                   <Pin className="w-3.5 h-3.5 text-zinc-400" />
                   {session.pinned ? "Unpin" : "Pin to top"}
                 </button>
                 <div className="border-t border-zinc-100 my-1" />
-                <button
-                  onClick={() => onDelete(session.id)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Delete
-                </button>
+                {confirmDelete ? (
+                  <div className="px-3 py-2">
+                    <p className="text-xs text-zinc-600 mb-2">Delete this chat?</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => onDelete(session.id)}
+                        className="flex-1 text-xs bg-red-600 text-white rounded-md px-2 py-1 hover:bg-red-700 transition-colors"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        className="flex-1 text-xs bg-zinc-100 text-zinc-700 rounded-md px-2 py-1 hover:bg-zinc-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                )}
               </div>
             )}
           </div>
