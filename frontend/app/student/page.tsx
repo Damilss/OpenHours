@@ -550,14 +550,18 @@ function SessionItem({
               <div id={`menu-${session.id}`} className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 w-40 py-1">
                 <button
                   onClick={() => onRenameStart(session)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-100 transition-colors"
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e4e4e7")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5 text-zinc-400" />
                   Rename
                 </button>
                 <button
                   onClick={() => onTogglePin(session.id, session.pinned)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-100 transition-colors"
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e4e4e7")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors"
                 >
                   <Pin className="w-3.5 h-3.5 text-zinc-400" />
                   {session.pinned ? "Unpin" : "Pin to top"}
@@ -569,13 +573,17 @@ function SessionItem({
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => onDelete(session.id)}
-                        className="flex-1 text-xs bg-red-600 text-white rounded-md px-2 py-1 hover:bg-red-700 transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                        className="flex-1 text-xs bg-red-600 text-white rounded-md px-2 py-1 transition-colors"
                       >
                         Delete
                       </button>
                       <button
                         onClick={() => setConfirmDelete(false)}
-                        className="flex-1 text-xs bg-zinc-100 text-zinc-700 rounded-md px-2 py-1 hover:bg-zinc-200 transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d4d4d8")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                        className="flex-1 text-xs bg-zinc-100 text-zinc-700 rounded-md px-2 py-1 transition-colors"
                       >
                         Cancel
                       </button>
@@ -584,7 +592,9 @@ function SessionItem({
                 ) : (
                   <button
                     onClick={() => setConfirmDelete(true)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors"
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete
