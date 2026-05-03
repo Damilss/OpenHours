@@ -36,7 +36,7 @@ Recycling in education is inefficient — professors answer the same questions o
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (App Router), Tailwind CSS, shadcn/ui |
+| Frontend | Next.js (App Router), Tailwind CSS |
 | Backend | FastAPI (Python) |
 | AI Pipeline | LangChain, OpenAI API (embeddings + chat) |
 | File Parsing | PyPDF, python-pptx, OpenAI Whisper |
