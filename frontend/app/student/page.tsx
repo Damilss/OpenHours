@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   BookOpen,
@@ -238,7 +239,7 @@ export default function StudentPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white z-10">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-indigo-600" />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-sm">OpenHours</span>
         </div>
 

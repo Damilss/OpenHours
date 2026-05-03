@@ -6,7 +6,7 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={24} height={24} />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-lg">OpenHours</span>
         </div>
         
