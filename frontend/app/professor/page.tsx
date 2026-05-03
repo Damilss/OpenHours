@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Copy,
   Check,
+  Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
@@ -32,11 +33,22 @@ export default function ProfessorDashboard() {
   const [docCount, setDocCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function copyCode(code: string) {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
+  }
+
+  async function deleteCourse(id: string) {
+    setDeleting(true);
+    const supabase = createClient();
+    await supabase.from("courses").delete().eq("id", id);
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+    setConfirmDeleteId(null);
+    setDeleting(false);
   }
 
   useEffect(() => {
@@ -259,12 +271,39 @@ export default function ProfessorDashboard() {
                         </div>
                       )}
                     </div>
-                    <Link
-                      href={`/professor/upload?course=${c.id}`}
-                      className="text-xs text-indigo-600 hover:underline shrink-0 ml-2"
-                    >
-                      Upload
-                    </Link>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <Link
+                        href={`/professor/upload?course=${c.id}`}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        Upload
+                      </Link>
+                      {confirmDeleteId === c.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => deleteCourse(c.id)}
+                            disabled={deleting}
+                            className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+                          >
+                            {deleting ? "…" : "Delete"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs text-zinc-500 hover:text-zinc-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteId(c.id)}
+                          className="text-zinc-300 hover:text-red-500 transition-colors"
+                          aria-label="Delete course"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
