@@ -1,5 +1,5 @@
 # OpenHours 🎓
-
+[Devpost page](https://devpost.com/software/openhours?ref_content=my-projects-tab&ref_feature=my_projects)
 > AI-powered office hours — scoped to your course, built to guide not replace.
 
 OpenHours lets professors upload their course materials (PDFs, slides, lecture videos) and gives students an AI assistant that answers questions **strictly based on that content**. The AI hints and guides rather than just giving answers.
