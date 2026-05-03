@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   BookOpen,
   Send,
-  CalendarClock,
   LogOut,
   ChevronDown,
   Plus,
@@ -307,13 +305,6 @@ export default function StudentPage() {
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-zinc-500">{userName}</span>
-          <Link
-            href="/student/book"
-            className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors"
-          >
-            <CalendarClock className="w-4 h-4" />
-            Book office hours
-          </Link>
           <button onClick={handleSignOut} className="text-zinc-400 hover:text-zinc-600 transition-colors" aria-label="Sign out">
             <LogOut className="w-4 h-4" />
           </button>
