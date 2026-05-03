@@ -75,11 +75,13 @@ function UploadForm() {
 
       setCourses(courseData ?? []);
       const courseId = searchParams.get("course") ?? courseData?.[0]?.id ?? "";
-      if (!selectedCourseId && courseId) setSelectedCourseId(courseId);
-      if (courseId) await loadPastFiles(courseId);
+      if (courseId) {
+        setSelectedCourseId(courseId);
+        await loadPastFiles(courseId);
+      }
     }
     init();
-  }, [router]);
+  }, [router, searchParams]);
 
   async function loadPastFiles(courseId: string) {
     if (!courseId) return;
@@ -153,8 +155,20 @@ function UploadForm() {
       formData.append("file", file);
       formData.append("course_id", selectedCourseId);
 
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error("Missing auth session");
+      }
+
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: formData,
       });
 

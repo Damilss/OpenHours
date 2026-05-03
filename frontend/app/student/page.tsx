@@ -13,6 +13,8 @@ import {
   Trash2,
   Pencil,
   Pin,
+  Hash,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -25,7 +27,7 @@ interface Message {
 interface Course {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
 }
 
 interface ChatSession {
@@ -51,6 +53,10 @@ export default function StudentPage() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joining, setJoining] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
@@ -72,15 +78,22 @@ export default function StudentPage() {
       setUserName(profile?.full_name ?? "Student");
       setUserId(user.id);
 
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("id, name, description")
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("courses(id, name, description)")
+        .eq("student_id", user.id)
         .order("created_at", { ascending: false });
 
-      setCourses(courseData ?? []);
-      if (courseData && courseData.length > 0) {
-        setSelectedCourse(courseData[0]);
-        await loadSessions(user.id, courseData[0].id, true);
+      const enrolledCourses = (enrollments ?? []).flatMap((enrollment) => {
+        const course = enrollment.courses as unknown;
+        if (!course) return [];
+        return Array.isArray(course) ? (course as Course[]) : [course as Course];
+      });
+
+      setCourses(enrolledCourses);
+      if (enrolledCourses.length > 0) {
+        setSelectedCourse(enrolledCourses[0]);
+        await loadSessions(user.id, enrolledCourses[0].id, true);
       }
     }
     init();
@@ -111,6 +124,45 @@ export default function StudentPage() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  async function joinCourse() {
+    const normalizedCode = joinCode.replace(/[^A-Z0-9]/g, "").toUpperCase();
+    if (!normalizedCode || !userId) return;
+
+    setJoining(true);
+    setJoinError("");
+
+    const supabase = createClient();
+    try {
+      const { data, error } = await supabase.rpc("join_course_by_code", {
+        p_code: normalizedCode,
+      });
+
+      const joinedCourse = Array.isArray(data)
+        ? (data[0] as Course | undefined)
+        : (data as Course | null);
+
+      if (error || !joinedCourse) {
+        setJoinError("Invalid code. Please check and try again.");
+        return;
+      }
+
+      setCourses((prev) =>
+        prev.some((course) => course.id === joinedCourse.id)
+          ? prev
+          : [joinedCourse, ...prev]
+      );
+      setSelectedCourse(joinedCourse);
+      setMessages([]);
+      setActiveSessionId(null);
+      setShowJoinModal(false);
+      setJoinCode("");
+      setCourseOpen(false);
+      await loadSessions(userId, joinedCourse.id, true);
+    } finally {
+      setJoining(false);
+    }
+  }
 
   async function loadSessions(uid: string, courseId: string, keepMessages = false) {
     const supabase = createClient();
@@ -192,10 +244,11 @@ export default function StudentPage() {
     setInput("");
     setLoading(true);
 
+    const supabase = createClient();
+
     try {
       let sessionId = activeSessionId;
       if (!sessionId) {
-        const supabase = createClient();
         const title = question.length > 50 ? question.slice(0, 50) + "…" : question;
         const { data: newSession } = await supabase
           .from("chat_sessions")
@@ -206,18 +259,30 @@ export default function StudentPage() {
         setActiveSessionId(sessionId);
       }
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error("Missing auth session");
+      }
+
       const res = await fetch("/api/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ question, course_id: selectedCourse.id, history: messages }),
       });
 
       const data = await res.json();
-      const answer = data.answer ?? "Sorry, I couldn't get a response.";
+      const answer = res.ok
+        ? data.answer ?? "Sorry, I couldn't get a response."
+        : data.error ?? "Sorry, I couldn't get a response.";
       setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
 
       if (sessionId) {
-        const supabase = createClient();
         await supabase.from("chat_messages").insert([
           { session_id: sessionId, role: "user", content: question },
           { session_id: sessionId, role: "assistant", content: answer },
@@ -269,6 +334,53 @@ export default function StudentPage() {
 
   return (
     <div className="flex flex-col h-screen">
+      {showJoinModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-zinc-900">Join a course</h2>
+              <button
+                onClick={() => {
+                  setShowJoinModal(false);
+                  setJoinCode("");
+                  setJoinError("");
+                }}
+                className="text-zinc-400 hover:text-zinc-600 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-zinc-500 mb-4">
+              Enter the class code your professor gave you.
+            </p>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => {
+                setJoinCode(
+                  e.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 6)
+                );
+                setJoinError("");
+              }}
+              onKeyDown={(e) => e.key === "Enter" && joinCourse()}
+              placeholder="AB12CD"
+              maxLength={6}
+              className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2 uppercase"
+              autoFocus
+            />
+            {joinError && <p className="text-xs text-red-500 mb-2">{joinError}</p>}
+            <button
+              onClick={joinCourse}
+              disabled={!joinCode.trim() || joining}
+              className="w-full bg-indigo-600 text-white text-sm py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 mt-1"
+            >
+              {joining ? "Joining..." : "Join course"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white z-10">
         <div className="flex items-center gap-2">
@@ -287,18 +399,30 @@ export default function StudentPage() {
           {courseOpen && (
             <div className="absolute top-full mt-1 left-0 bg-white border border-zinc-200 rounded-xl shadow-lg z-10 min-w-48">
               {courses.length === 0 ? (
-                <p className="text-sm text-zinc-400 px-4 py-3">No courses available</p>
+                <p className="text-sm text-zinc-400 px-4 py-3">No courses yet</p>
               ) : (
                 courses.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => handleCourseSelect(c)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl"
+                    className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl"
                   >
                     {c.name}
                   </button>
                 ))
               )}
+              <div className="border-t border-zinc-100">
+                <button
+                  onClick={() => {
+                    setCourseOpen(false);
+                    setShowJoinModal(true);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 hover:bg-zinc-50 rounded-b-xl flex items-center gap-2"
+                >
+                  <Hash className="w-3.5 h-3.5" />
+                  Join a course
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -327,7 +451,9 @@ export default function StudentPage() {
           <div className="flex-1 overflow-y-auto p-2">
             {sessions.length === 0 ? (
               <p className="text-xs text-zinc-400 text-center mt-6 px-4">
-                No past chats yet. Ask a question to get started.
+                {courses.length === 0
+                  ? "Join a course to get started."
+                  : "No past chats yet. Ask a question to get started."}
               </p>
             ) : (
               <>
@@ -396,11 +522,25 @@ export default function StudentPage() {
                     <BookOpen className="w-6 h-6 text-indigo-600" />
                   </div>
                   <h2 className="font-semibold text-zinc-800 mb-2">
-                    {selectedCourse ? `Ask about ${selectedCourse.name}` : "Select a course to get started"}
+                    {selectedCourse ? `Ask about ${selectedCourse.name}` : "No courses yet"}
                   </h2>
-                  <p className="text-sm text-zinc-400 max-w-xs mx-auto">
-                    I&apos;ll answer based strictly on your course materials.
-                  </p>
+                  {selectedCourse ? (
+                    <p className="text-sm text-zinc-400 max-w-xs mx-auto">
+                      I&apos;ll answer based strictly on your course materials.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-zinc-400 max-w-xs mx-auto mb-4">
+                        Enter a class code from your professor to get started.
+                      </p>
+                      <button
+                        onClick={() => setShowJoinModal(true)}
+                        className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        Join a course
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -439,7 +579,7 @@ export default function StudentPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !loading && sendMessage()}
-                placeholder={selectedCourse ? `Ask about ${selectedCourse.name}…` : "Select a course first"}
+                placeholder={selectedCourse ? `Ask about ${selectedCourse.name}…` : "Join a course to get started"}
                 disabled={!selectedCourse}
                 className="flex-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-zinc-50 disabled:text-zinc-400"
               />

@@ -31,10 +31,12 @@ The app validates the three required vars on startup and raises `RuntimeError` i
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/health` | Liveness check |
-| `POST` | `/upload` | Multipart upload: parse, chunk, embed, store in pgvector |
-| `POST` | `/ask` | Embed question, retrieve top chunks, generate scoped answer |
-| `GET` | `/analytics/{course_id}` | Topic clusters from `question_logs` |
-| `POST` | `/book` | _(Unused.)_ Inserts a `bookings` row — no UI calls this |
+| `POST` | `/upload` | Authenticated professor upload: parse, chunk, embed, store in pgvector |
+| `POST` | `/ask` | Authenticated enrolled-student question: retrieve top chunks, generate scoped answer |
+| `GET` | `/analytics/{course_id}` | Authenticated professor topic clusters from `question_logs` |
+| `POST` | `/book` | _(Unused.)_ Authenticated enrolled-student booking insert |
+
+Protected endpoints require `Authorization: Bearer <supabase_access_token>`.
 
 ## Services (`services/`)
 

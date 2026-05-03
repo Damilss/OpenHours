@@ -12,6 +12,8 @@ import {
   Users,
   FileText,
   ChevronRight,
+  Copy,
+  Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
@@ -19,6 +21,7 @@ interface Course {
   id: string;
   name: string;
   description: string;
+  join_code: string;
   created_at: string;
 }
 
@@ -28,6 +31,13 @@ export default function ProfessorDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [docCount, setDocCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  async function copyCode(code: string) {
+    await navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  }
 
   useEffect(() => {
     async function init() {
@@ -56,7 +66,7 @@ export default function ProfessorDashboard() {
 
       const { data: courseData } = await supabase
         .from("courses")
-        .select("id, name, description, created_at")
+        .select("id, name, description, join_code, created_at")
         .eq("professor_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -222,7 +232,7 @@ export default function ProfessorDashboard() {
                     key={c.id}
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 transition-colors"
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-zinc-800">
                         {c.name}
                       </p>
@@ -231,6 +241,22 @@ export default function ProfessorDashboard() {
                           {c.description}
                         </p>
                       )}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-xs font-mono bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">
+                          {c.join_code}
+                        </span>
+                        <button
+                          onClick={() => copyCode(c.join_code)}
+                          className="text-zinc-400 hover:text-indigo-600 transition-colors"
+                          aria-label="Copy class code"
+                        >
+                          {copiedCode === c.join_code ? (
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Link
                       href={`/professor/upload?course=${c.id}`}

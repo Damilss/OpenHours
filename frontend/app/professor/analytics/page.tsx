@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,33 @@ export default function AnalyticsPage() {
   const [topics, setTopics] = useState<TopicStat[]>([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const fetchAnalytics = useCallback(async (courseId: string) => {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const res = await fetch(`/api/analytics?course_id=${courseId}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTopics(data.topics ?? []);
+        setTotalQuestions(data.total_questions ?? 0);
+      }
+    } catch {
+      // silently fail — analytics are non-critical
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -55,32 +82,13 @@ export default function AnalyticsPage() {
 
       setCourses(courseData ?? []);
       if (courseData && courseData.length > 0) {
-        setSelectedCourseId(courseData[0].id);
+        const firstCourseId = courseData[0].id;
+        setSelectedCourseId(firstCourseId);
+        await fetchAnalytics(firstCourseId);
       }
     }
     init();
-  }, [router]);
-
-  useEffect(() => {
-    if (!selectedCourseId) return;
-    fetchAnalytics(selectedCourseId);
-  }, [selectedCourseId]);
-
-  async function fetchAnalytics(courseId: string) {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/analytics?course_id=${courseId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTopics(data.topics ?? []);
-        setTotalQuestions(data.total_questions ?? 0);
-      }
-    } catch {
-      // silently fail — analytics are non-critical
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, [router, fetchAnalytics]);
 
   const maxCount = Math.max(...topics.map((t) => t.count), 1);
 
@@ -110,7 +118,11 @@ export default function AnalyticsPage() {
           {courses.length > 1 && (
             <select
               value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
+              onChange={(e) => {
+                const courseId = e.target.value;
+                setSelectedCourseId(courseId);
+                fetchAnalytics(courseId);
+              }}
               className="border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {courses.map((c) => (

@@ -34,9 +34,10 @@ FASTAPI_URL=http://localhost:8000
 
 ## Structure
 
-- `app/api/*/route.ts` — thin proxies that forward to the FastAPI backend. No business logic lives in the Next.js layer.
+- `app/api/*/route.ts` — authenticated proxy routes that verify course access before forwarding to the FastAPI backend.
 - `app/student/page.tsx` — chat UI; reads/writes `chat_sessions` and `chat_messages` directly via Supabase.
 - `app/professor/*` — dashboard, upload, and analytics pages; talks to Supabase directly for course/document/analytics queries.
-- `lib/supabase.ts` — browser-only Supabase client (`createBrowserClient` from `@supabase/ssr`). There is no server-side client.
+- `lib/supabase.ts` — browser Supabase client (`createBrowserClient` from `@supabase/ssr`).
+- `lib/supabase-server.ts` — route-handler Supabase client used to validate bearer tokens and RLS-backed access.
 
 For the full project overview see the [root README](../README.md). For codebase guidance see the [root CLAUDE.md](../CLAUDE.md).
