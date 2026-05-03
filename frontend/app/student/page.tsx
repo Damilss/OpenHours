@@ -112,6 +112,35 @@ export default function StudentPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  async function joinCourse() {
+    if (!joinCode.trim() || !userId) return;
+    setJoining(true);
+    setJoinError("");
+    const supabase = createClient();
+
+    const { data: courseData, error } = await supabase
+      .from("courses")
+      .select("id, name, description")
+      .eq("join_code", joinCode.trim().toUpperCase())
+      .single();
+
+    const course = courseData as Course | null;
+
+    if (error || !course) {
+      setJoinError("Invalid code. Please check and try again.");
+      setJoining(false);
+      return;
+    }
+
+    setCourses((prev) => prev.find((c) => c.id === course.id) ? prev : [...prev, course]);
+    setSelectedCourse(course);
+    setShowJoinModal(false);
+    setJoinCode("");
+    setCourseOpen(false);
+    await loadSessions(userId, course.id, true);
+    setJoining(false);
+  }
+
   async function loadSessions(uid: string, courseId: string, keepMessages = false) {
     const supabase = createClient();
     const { data } = await supabase

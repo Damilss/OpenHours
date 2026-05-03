@@ -1,0 +1,165 @@
+OpenHours - Demo Script
+
+Audience: Judges / hackathon reviewers
+Time: ~5 minutes
+Setup needed: Both servers running, one professor account, one student account ready to go
+
+
+------------------------------------------------------------
+0. SETUP (before you go on stage)
+------------------------------------------------------------
+
+- Frontend running at http://localhost:3000 (or deployed Vercel URL)
+- Backend running at http://localhost:8000
+- Have two browser windows open -- one for professor, one for student (use incognito for the second)
+- Professor account already signed in
+- Have a PDF or PPTX ready to upload (a real lecture slide deck works best)
+
+
+------------------------------------------------------------
+1. THE HOOK (30 seconds)
+------------------------------------------------------------
+
+"Professors answer the same questions over and over. Students wait days for help. And when they
+turn to ChatGPT, they get answers that have nothing to do with the course -- or just get the
+answer handed to them.
+
+OpenHours fixes all three. Here's how."
+
+
+------------------------------------------------------------
+2. PROFESSOR FLOW (90 seconds)
+------------------------------------------------------------
+
+Window 1 -- Professor dashboard
+
+"I'm a professor. I log in and land on my dashboard."
+
+  - Show the dashboard -- course count, document chunks, quick actions
+
+"I want to set up a new course. I'll go to Upload Materials."
+
+  - Click Upload materials
+  - Click + New course
+  - Type a course name, e.g. CS 101 -- Data Structures
+  - Click Create course
+
+"The course is created instantly and gets a join code -- that's what students use to enroll."
+
+  - Point out the join code displayed on the dashboard (e.g. 1C9013)
+
+"Now I'll upload my lecture slides."
+
+  - Drag in a PDF or PPTX
+  - Watch the upload status show "uploading..." then "X chunks indexed"
+
+"OpenHours parsed the file, split it into chunks, and embedded each one into a vector database.
+The AI now knows exactly what's in this course -- and only this course."
+
+
+------------------------------------------------------------
+3. STUDENT FLOW -- JOINING (30 seconds)
+------------------------------------------------------------
+
+Window 2 -- Student account (incognito)
+
+"Now I'm a student. I sign up, land on the chat page, and I have no courses yet."
+
+  - Show the empty state with the Join a course button
+  - Click Join a course
+  - Type the join code from step 2
+  - Click Join course
+
+"I'm enrolled. The course appears immediately."
+
+
+------------------------------------------------------------
+4. STUDENT FLOW -- ASKING QUESTIONS (90 seconds)
+------------------------------------------------------------
+
+"Now I ask a question about something from the lecture."
+
+  - Type a question directly related to the uploaded material, e.g.:
+      "What's the difference between a stack and a queue?"
+      "Can you explain how merge sort works?"
+  - Send it and wait for the response
+
+"The AI answers -- but notice what it's doing. It's not just giving me the answer. It's guiding
+me toward understanding, using exactly what my professor uploaded."
+
+  - Point out that the answer references concepts from the slides
+  - Ask a follow-up question to show conversation history works
+
+"Now I'll try something the course doesn't cover."
+
+  - Ask something completely off-topic, e.g. "What's the capital of France?"
+
+"It stays scoped. It won't answer things outside the course material. No hallucinations,
+no off-topic shortcuts."
+
+
+------------------------------------------------------------
+5. BOOK OFFICE HOURS (20 seconds)
+------------------------------------------------------------
+
+"If the AI can't help, students aren't stuck. They can request a real session."
+
+  - Click Book office hours in the header
+  - Show the booking form briefly
+
+"The request goes straight to the professor."
+
+
+------------------------------------------------------------
+6. PROFESSOR ANALYTICS (30 seconds)
+------------------------------------------------------------
+
+Switch back to Window 1 -- Professor dashboard
+
+"Back on the professor side -- I can see what my students are actually struggling with."
+
+  - Navigate to View analytics
+  - Show the analytics page (topic clusters from student questions)
+
+"This tells me where to focus my real office hours. Instead of answering the same question
+30 times, I spend that time on the hard stuff."
+
+
+------------------------------------------------------------
+7. THE CLOSE (30 seconds)
+------------------------------------------------------------
+
+"OpenHours gives students instant, scoped AI help 24/7. It keeps the AI constrained to course
+content -- so no cheating shortcuts, no hallucinations. And it gives professors back their time.
+
+We're not replacing professors. We're making their time count."
+
+
+------------------------------------------------------------
+BACKUP / Q&A TALKING POINTS
+------------------------------------------------------------
+
+"How does it stay scoped to course content?"
+
+  RAG -- Retrieval Augmented Generation. Every question is matched against the professor's
+  uploaded material using vector similarity search. The AI only sees the top matching chunks
+  as context. If the answer isn't in the course, it says so.
+
+"What file types are supported?"
+
+  PDFs, PowerPoint slides, and optionally video/audio files via Whisper transcription.
+
+"What if a student tries to jailbreak it?"
+
+  The system prompt explicitly constrains the AI to the retrieved context. It's not a
+  general-purpose chatbot -- it's a course-scoped assistant.
+
+"How does the join code work?"
+
+  When a professor creates a course, a random 6-character code is generated. Students enter
+  that code to enroll. Only enrolled students can chat in that course.
+
+"What's the tech stack?"
+
+  Next.js frontend, FastAPI backend, OpenAI for embeddings and chat, Supabase for auth +
+  PostgreSQL + pgvector for vector search.
