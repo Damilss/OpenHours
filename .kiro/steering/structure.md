@@ -1,35 +1,57 @@
 # Project Structure
 
-The repository is in early stages with no application code yet.
+OpenHours is organized as a monorepo with separate frontend and backend applications.
 
-## Current Layout
+## Repository Structure
 
 ```
-KiroHacks/
-├── .git/
-├── .kiro/
-│   └── steering/       # Kiro AI steering documents
+openhours/
+├── frontend/                    # Next.js app
+│   ├── app/
+│   │   ├── page.tsx             # Landing / onboarding
+│   │   ├── auth/
+│   │   │   ├── login/page.tsx
+│   │   │   └── signup/page.tsx
+│   │   ├── student/
+│   │   │   ├── page.tsx         # Student chat UI
+│   │   │   └── book/page.tsx    # Book office hours
+│   │   ├── professor/
+│   │   │   ├── page.tsx         # Professor dashboard
+│   │   │   ├── upload/page.tsx  # Upload course materials
+│   │   │   └── analytics/page.tsx
+│   │   └── api/
+│   │       ├── ask/route.ts     # Proxy to FastAPI
+│   │       └── upload/route.ts
+│   ├── components/
+│   ├── lib/
+│   │   └── supabase.ts
+│   └── package.json
+│
+├── backend/                     # FastAPI (Python)
+│   ├── main.py
+│   ├── routes/
+│   │   ├── upload.py            # File ingestion
+│   │   ├── ask.py               # Student query handler
+│   │   └── analytics.py        # Professor analytics
+│   ├── services/
+│   │   ├── rag.py               # LangChain RAG pipeline
+│   │   ├── parser.py            # PDF / PPTX / video parsing
+│   │   └── embeddings.py       # OpenAI embeddings
+│   ├── requirements.txt
+│   └── .env
+│
+├── supabase/
+│   └── schema.sql               # DB schema + pgvector setup
+│
+├── .env.example
 ├── README.md
-└── LICENSE
-```
-
-## Expected Structure
-
-As the project grows, organize around these concerns:
-
-```
-KiroHacks/
-├── frontend/           # UI for student interaction
-├── backend/            # API server, LLM integration, hint logic
-│   ├── hints/          # Tiered hint generation logic
-│   └── tracking/       # Help usage tracking per student
-├── prompts/            # LLM system prompts and hint templates
-└── README.md
+└── CLAUDE.md
 ```
 
 ## Conventions to Follow
 
-- Keep hint logic isolated and testable — it's the core of the product
-- LLM prompts should live in dedicated files, not hardcoded in business logic
+- RAG pipeline logic lives in `backend/services/` — keep it isolated and testable
+- LLM system prompts should be configurable, not hardcoded in business logic
 - Never commit API keys or secrets; use environment variables (`.env`, never committed)
-- Track hint level (1, 2, 3) as explicit state, not inferred from conversation history
+- Frontend proxies to backend via Next.js API routes for auth checks and cleaner separation
+- All course content is scoped via `course_id` to ensure students only access their course materials
