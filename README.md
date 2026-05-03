@@ -53,7 +53,9 @@ Recycling in education is inefficient — professors answer the same questions o
 openhours/
 ├── frontend/                    # Next.js app
 │   ├── app/
-│   │   ├── page.tsx             # Landing / onboarding
+│   │   ├── page.tsx             # Landing page
+│   │   ├── layout.tsx
+│   │   ├── globals.css
 │   │   ├── auth/
 │   │   │   ├── login/page.tsx
 │   │   │   └── signup/page.tsx
@@ -64,31 +66,30 @@ openhours/
 │   │   │   ├── page.tsx         # Professor dashboard
 │   │   │   ├── upload/page.tsx  # Upload course materials
 │   │   │   └── analytics/page.tsx
-│   │   └── api/
-│   │       ├── ask/route.ts     # Proxy to FastAPI
-│   │       └── upload/route.ts
-│   ├── components/
+│   │   └── api/                 # Next.js API routes (proxy to FastAPI)
+│   │       ├── ask/route.ts
+│   │       ├── upload/route.ts
+│   │       ├── book/route.ts
+│   │       └── analytics/route.ts
 │   ├── lib/
-│   │   └── supabase.ts
-│   └── package.json
+│   │   ├── supabase.ts
+│   │   └── utils.ts
+│   ├── package.json
+│   └── .env.example
 │
 ├── backend/                     # FastAPI (Python)
-│   ├── main.py
-│   ├── routes/
-│   │   ├── upload.py            # File ingestion
-│   │   ├── ask.py               # Student query handler
-│   │   └── analytics.py        # Professor analytics
+│   ├── main.py                  # All API endpoints
 │   ├── services/
-│   │   ├── rag.py               # LangChain RAG pipeline
 │   │   ├── parser.py            # PDF / PPTX / video parsing
-│   │   └── embeddings.py       # OpenAI embeddings
+│   │   ├── embeddings.py        # OpenAI embeddings + chunking
+│   │   ├── rag.py               # LangChain RAG pipeline
+│   │   └── analytics.py         # Question clustering
 │   ├── requirements.txt
-│   └── .env
+│   └── .env.example
 │
 ├── supabase/
 │   └── schema.sql               # DB schema + pgvector setup
 │
-├── .env.example
 └── README.md
 ```
 
@@ -124,9 +125,11 @@ cd openhours
 
 ### 3. Environment Variables
 
-Copy the example env file and fill in your keys:
+Copy the example env files and fill in your keys:
 
+**Frontend:**
 ```bash
+cd frontend
 cp .env.example .env
 ```
 
@@ -134,13 +137,27 @@ cp .env.example .env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Backend URL
+FASTAPI_URL=http://localhost:8000
+```
+
+**Backend:**
+```bash
+cd backend
+cp .env.example .env
+```
+
+```env
+# Supabase
+SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # OpenAI
 OPENAI_API_KEY=your_openai_key
 
-# Backend
-FASTAPI_URL=http://localhost:8000
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:3000
 ```
 
 ---
