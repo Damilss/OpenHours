@@ -2,8 +2,8 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 function SignupForm() {
@@ -49,7 +49,7 @@ function SignupForm() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <BookOpen className="w-6 h-6 text-indigo-600" />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={24} height={24} />
           <span className="font-semibold text-lg">OpenHours</span>
         </div>
 

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <BookOpen className="w-6 h-6 text-indigo-600" />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={24} height={24} />
           <span className="font-semibold text-lg">OpenHours</span>
         </div>
         
