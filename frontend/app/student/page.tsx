@@ -257,7 +257,7 @@ export default function StudentPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !loading && sendMessage()}
             placeholder={
               selectedCourse
                 ? `Ask about ${selectedCourse.name}…`
