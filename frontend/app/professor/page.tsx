@@ -11,7 +11,6 @@ import {
   LogOut,
   Users,
   FileText,
-  CalendarClock,
   ChevronRight,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
@@ -23,20 +22,10 @@ interface Course {
   created_at: string;
 }
 
-interface Booking {
-  id: string;
-  message: string;
-  status: string;
-  created_at: string;
-  profiles: { full_name: string } | null;
-  courses: { name: string } | null;
-}
-
 export default function ProfessorDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [docCount, setDocCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -83,16 +72,6 @@ export default function ProfessorDashboard() {
 
         setDocCount(count ?? 0);
 
-        const { data: bookingData } = await supabase
-          .from("bookings")
-          .select(
-            "id, message, status, created_at, profiles(full_name), courses(name)"
-          )
-          .in("course_id", courseIds)
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        setBookings((bookingData as unknown as Booking[]) ?? []);
       }
 
       setLoading(false);
@@ -104,14 +83,6 @@ export default function ProfessorDashboard() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
-  }
-
-  async function updateBookingStatus(id: string, status: string) {
-    const supabase = createClient();
-    await supabase.from("bookings").update({ status }).eq("id", id);
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status } : b))
-    );
   }
 
   if (loading) {
@@ -161,7 +132,7 @@ export default function ProfessorDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           {[
             {
               label: "Courses",
@@ -172,11 +143,6 @@ export default function ProfessorDashboard() {
               label: "Document chunks",
               value: docCount,
               icon: <FileText className="w-5 h-5 text-emerald-500" />,
-            },
-            {
-              label: "Pending bookings",
-              value: bookings.filter((b) => b.status === "pending").length,
-              icon: <CalendarClock className="w-5 h-5 text-amber-500" />,
             },
           ].map((s) => (
             <div
@@ -228,9 +194,7 @@ export default function ProfessorDashboard() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Courses */}
-          <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-zinc-800">Your courses</h2>
               <Link
@@ -279,76 +243,6 @@ export default function ProfessorDashboard() {
               </div>
             )}
           </div>
-
-          {/* Bookings */}
-          <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-            <h2 className="font-semibold text-zinc-800 mb-4">
-              Office hours requests
-            </h2>
-            {bookings.length === 0 ? (
-              <div className="text-center py-8">
-                <CalendarClock className="w-8 h-8 text-zinc-200 mx-auto mb-2" />
-                <p className="text-sm text-zinc-400">No requests yet</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {bookings.map((b) => (
-                  <div
-                    key={b.id}
-                    className="p-3 rounded-xl border border-zinc-100"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-zinc-800 truncate">
-                          {b.profiles?.full_name ?? "Student"}
-                        </p>
-                        <p className="text-xs text-zinc-400">
-                          {b.courses?.name}
-                        </p>
-                        {b.message && (
-                          <p className="text-xs text-zinc-500 mt-1 line-clamp-2">
-                            {b.message}
-                          </p>
-                        )}
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                          b.status === "pending"
-                            ? "bg-amber-50 text-amber-600"
-                            : b.status === "confirmed"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-zinc-100 text-zinc-500"
-                        }`}
-                      >
-                        {b.status}
-                      </span>
-                    </div>
-                    {b.status === "pending" && (
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() =>
-                            updateBookingStatus(b.id, "confirmed")
-                          }
-                          className="text-xs text-emerald-600 hover:underline"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() =>
-                            updateBookingStatus(b.id, "declined")
-                          }
-                          className="text-xs text-red-500 hover:underline"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </main>
     </div>
   );

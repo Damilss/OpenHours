@@ -2,7 +2,7 @@
 
 > AI-powered office hours — scoped to your course, built to guide not replace.
 
-OpenHours lets professors upload their course materials (PDFs, slides, lecture videos) and gives students an AI assistant that answers questions **strictly based on that content**. The AI hints and guides rather than just giving answers. When students need more help, they can book office hours directly with their professor.
+OpenHours lets professors upload their course materials (PDFs, slides, lecture videos) and gives students an AI assistant that answers questions **strictly based on that content**. The AI hints and guides rather than just giving answers.
 
 **Built for the Intellectual Pursuit track.**
 
@@ -25,7 +25,7 @@ Recycling in education is inefficient — professors answer the same questions o
 
 | Person | Responsibility |
 |---|---|
-| **Person 1** | Frontend — Landing page, student chat UI, book office hours flow, auth pages |
+| **Person 1** | Frontend — Landing page, student chat UI, auth pages |
 | **Person 2** | Professor dashboard — upload UI, analytics, admin panel, Supabase Auth + roles |
 | **Person 3** | AI/RAG backend — FastAPI, file parsing, LangChain + pgvector pipeline, `/ask` endpoint |
 | **Person 4** | Database + glue — Supabase schema, connect frontend↔backend, env vars, deployment |
@@ -60,8 +60,7 @@ openhours/
 │   │   │   ├── login/page.tsx
 │   │   │   └── signup/page.tsx
 │   │   ├── student/
-│   │   │   ├── page.tsx         # Student chat UI
-│   │   │   └── book/page.tsx    # Book office hours
+│   │   │   └── page.tsx         # Student chat UI
 │   │   ├── professor/
 │   │   │   ├── page.tsx         # Professor dashboard
 │   │   │   ├── upload/page.tsx  # Upload course materials
@@ -69,7 +68,6 @@ openhours/
 │   │   └── api/                 # Next.js API routes (proxy to FastAPI)
 │   │       ├── ask/route.ts
 │   │       ├── upload/route.ts
-│   │       ├── book/route.ts
 │   │       └── analytics/route.ts
 │   ├── lib/
 │   │   ├── supabase.ts
@@ -245,21 +243,6 @@ create table if not exists documents (
 
 create index if not exists documents_course_id_idx on documents(course_id);
 
--- Office hours bookings
-create table if not exists bookings (
-  id          uuid primary key default gen_random_uuid(),
-  student_id  uuid references profiles(id) on delete cascade not null,
-  course_id   uuid references courses(id) on delete cascade not null,
-  message     text,
-  status      text not null default 'pending'
-              check (status in ('pending', 'confirmed', 'declined')),
-  created_at  timestamptz default now()
-);
-
-create index if not exists bookings_course_id_idx  on bookings(course_id);
-create index if not exists bookings_student_id_idx on bookings(student_id);
-create index if not exists bookings_status_idx     on bookings(status);
-
 -- Question logs (for analytics)
 create table if not exists question_logs (
   id          uuid primary key default gen_random_uuid(),
@@ -328,8 +311,6 @@ Search pgvector for closest matching chunks
 Feed top chunks as context to AI
         ↓
 AI answers ONLY based on that context
-        ↓
-If AI can't answer → suggest booking office hours
 ```
 
 ---
@@ -341,7 +322,6 @@ If AI can't answer → suggest booking office hours
 | `POST` | `/upload` | Accept file, parse, embed, store in pgvector |
 | `POST` | `/ask` | Take student question, search pgvector, return AI answer |
 | `GET` | `/analytics/{course_id}` | Return most common question topics |
-| `POST` | `/book` | Create office hours booking |
 
 ---
 
@@ -372,11 +352,10 @@ npx vercel
 | 5 | LangChain RAG pipeline + pgvector | Person 3 |
 | 6 | Professor upload UI | Person 2 |
 | 7 | Student chat UI | Person 1 |
-| 8 | Book office hours flow | Person 1 |
-| 9 | Professor analytics dashboard | Person 2 |
-| 10 | Connect frontend ↔ backend | Person 4 |
-| 11 | Landing / onboarding page | Person 1 |
-| 12 | Deploy frontend + backend | Person 4 |
+| 8 | Professor analytics dashboard | Person 2 |
+| 9 | Connect frontend ↔ backend | Person 4 |
+| 10 | Landing / onboarding page | Person 1 |
+| 11 | Deploy frontend + backend | Person 4 |
 | 13 | Polish + demo prep | Everyone |
 
 ---

@@ -76,7 +76,6 @@ Browser → Next.js frontend (port 3000)
 | `profiles` | Extends `auth.users`; stores `role` (professor/student) |
 | `courses` | Owned by a professor; scopes all content and queries |
 | `documents` | Parsed text chunks + `vector(1536)` embeddings |
-| `bookings` | Office hours requests; status: pending/confirmed/declined |
 | `question_logs` | Every student question logged for analytics |
 
 Semantic search is performed via the `match_documents(query_embedding, match_course_id, match_count)` Postgres function using cosine distance (`<->`).
@@ -89,7 +88,6 @@ Semantic search is performed via the `match_documents(query_embedding, match_cou
 | `/auth/login`, `/auth/signup` | Auth (role selected at signup, stored in `raw_user_meta_data`) |
 | `/auth/verify` | Email verification holding page |
 | `/student` | Chat UI |
-| `/student/book` | Book office hours |
 | `/professor` | Dashboard |
 | `/professor/upload` | File upload |
 | `/professor/analytics` | Topic analytics |

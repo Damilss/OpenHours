@@ -4,7 +4,7 @@
 
 ## Core Concept
 
-Professors upload course materials (PDFs, slides, lecture videos). Students get 24/7 AI assistance that answers questions **only based on that content**. When the AI can't help, students can book office hours directly with their professor.
+Professors upload course materials (PDFs, slides, lecture videos). Students get 24/7 AI assistance that answers questions **only based on that content**.
 
 ## Target Users
 
@@ -15,9 +15,8 @@ Professors upload course materials (PDFs, slides, lecture videos). Students get 
 
 1. **Scoped AI**: RAG (Retrieval Augmented Generation) ensures answers come strictly from course materials
 2. **Student Chat**: 24/7 Q&A interface with conversation history
-3. **Office Hours Booking**: Direct booking flow when AI can't help
-4. **Professor Dashboard**: Upload materials, view bookings, see analytics
-5. **Analytics**: Shows professors which topics students ask about most
+3. **Professor Dashboard**: Upload materials, see analytics
+4. **Analytics**: Shows professors which topics students ask about most
 
 ## Design Principle
 
