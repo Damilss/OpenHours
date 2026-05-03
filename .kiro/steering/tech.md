@@ -1,32 +1,57 @@
 # Tech Stack
 
-No application code exists yet. This document should be updated as the stack is decided.
+## Frontend
+- **Next.js 16** (App Router)
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Supabase JS Client** (`@supabase/supabase-js`, `@supabase/ssr`)
+- **lucide-react** (icons)
 
-## Expected Stack (Hackathon Context)
+## Backend
+- **FastAPI** (Python)
+- **LangChain** + **LangChain OpenAI** (RAG pipeline)
+- **OpenAI API** (embeddings: `text-embedding-3-small`, chat: GPT models)
+- **Supabase Python Client**
+- **PyPDF** (PDF parsing)
+- **python-pptx** (PowerPoint parsing)
+- **OpenAI Whisper** (video/audio transcription - optional, not in requirements.txt)
 
-Given this is a hackathon AI project, likely candidates include:
+## Database & Storage
+- **Supabase** (PostgreSQL + pgvector extension)
+- **pgvector** (vector similarity search for RAG)
+- **Supabase Storage** (course material files)
+- **Supabase Auth** (professor/student roles)
 
-- **Frontend**: React, Next.js, or a simple HTML/JS interface
-- **Backend**: Node.js / Python (FastAPI or Flask)
-- **AI**: OpenAI API or similar LLM provider
-- **State/Hints**: In-memory or lightweight DB (e.g. SQLite, Supabase) to track hint usage per student
-
-Update this file once the actual stack is confirmed.
+## Deployment
+- **Vercel** (frontend)
+- **Railway** (backend - recommended)
 
 ## Common Commands
 
-Once established, add commands for:
-
+### Frontend
 ```bash
-# Install dependencies
-# e.g. npm install / pip install -r requirements.txt
-
-# Build
-# e.g. npm run build
-
-# Run tests
-# e.g. npm test / pytest
-
-# Start dev server
-# e.g. npm run dev
+cd frontend
+npm install
+npm run dev          # http://localhost:3000
+npm run build
+npm start
 ```
+
+### Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload  # http://localhost:8000
+```
+
+### Environment Variables Required
+- `OPENAI_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `FASTAPI_URL` (frontend)
+- `FRONTEND_URL` (backend CORS)

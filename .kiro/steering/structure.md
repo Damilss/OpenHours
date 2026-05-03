@@ -1,35 +1,57 @@
 # Project Structure
 
-The repository is in early stages with no application code yet.
+OpenHours is a full-stack application with Next.js frontend and FastAPI backend.
 
 ## Current Layout
 
 ```
-KiroHacks/
-├── .git/
-├── .kiro/
-│   └── steering/       # Kiro AI steering documents
+OpenHours/
+├── frontend/                    # Next.js app (App Router)
+│   ├── app/
+│   │   ├── page.tsx             # Landing page
+│   │   ├── layout.tsx
+│   │   ├── globals.css
+│   │   ├── auth/
+│   │   │   ├── login/page.tsx
+│   │   │   └── signup/page.tsx
+│   │   ├── student/
+│   │   │   ├── page.tsx         # Student chat UI
+│   │   │   └── book/page.tsx    # Book office hours
+│   │   ├── professor/
+│   │   │   ├── page.tsx         # Professor dashboard
+│   │   │   ├── upload/page.tsx  # Upload course materials
+│   │   │   └── analytics/page.tsx
+│   │   └── api/                 # Next.js API routes (proxy to FastAPI)
+│   │       ├── ask/route.ts
+│   │       ├── upload/route.ts
+│   │       ├── book/route.ts
+│   │       └── analytics/route.ts
+│   ├── lib/
+│   │   ├── supabase.ts          # Supabase client
+│   │   └── utils.ts
+│   └── package.json
+│
+├── backend/                     # FastAPI (Python)
+│   ├── main.py                  # All API endpoints
+│   ├── services/
+│   │   ├── parser.py            # PDF/PPTX/video parsing
+│   │   ├── embeddings.py        # OpenAI embeddings + chunking
+│   │   ├── rag.py               # LangChain RAG pipeline
+│   │   └── analytics.py         # Question clustering
+│   └── requirements.txt
+│
+├── supabase/
+│   └── schema.sql               # DB schema + pgvector setup
+│
+├── .kiro/steering/              # Kiro AI steering documents
 ├── README.md
 └── LICENSE
 ```
 
-## Expected Structure
+## Conventions
 
-As the project grows, organize around these concerns:
-
-```
-KiroHacks/
-├── frontend/           # UI for student interaction
-├── backend/            # API server, LLM integration, hint logic
-│   ├── hints/          # Tiered hint generation logic
-│   └── tracking/       # Help usage tracking per student
-├── prompts/            # LLM system prompts and hint templates
-└── README.md
-```
-
-## Conventions to Follow
-
-- Keep hint logic isolated and testable — it's the core of the product
-- LLM prompts should live in dedicated files, not hardcoded in business logic
-- Never commit API keys or secrets; use environment variables (`.env`, never committed)
-- Track hint level (1, 2, 3) as explicit state, not inferred from conversation history
+- RAG pipeline logic lives in `backend/services/rag.py`
+- All backend routes are in `main.py` (no separate routes/ directory)
+- Frontend uses Next.js API routes as a proxy layer to FastAPI
+- Never commit API keys; use environment variables
+- Supabase handles auth, database (PostgreSQL + pgvector), and file storage

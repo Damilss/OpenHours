@@ -1,29 +1,27 @@
 # Product
 
-**KiroHacks** is an AI-powered tutoring tool called **AI Office Hours**, built for a hackathon by Emilio Ledesma.
+**OpenHours** is an AI-powered office hours platform that gives students instant, scoped help based strictly on course materials uploaded by professors.
 
 ## Core Concept
 
-The product helps students who are stuck on problems — but critically, it **refuses to give direct answers**. Instead, it guides students through a tiered hint system to reach the solution themselves.
+Professors upload course materials (PDFs, slides, lecture videos). Students get 24/7 AI assistance that answers questions **only based on that content**. When the AI can't help, students can book office hours directly with their professor.
 
 ## Target Users
 
-Students who are stuck on coursework or problems and need guided support, not just answers.
+- **Students**: Need instant help on course-specific questions outside of office hours
+- **Professors**: Want to reduce repetitive questions and gain insights into what students struggle with
 
-## Key Behavior
+## Key Features
 
-The AI detects when a student is stuck and responds with progressively more helpful hints:
-
-1. **Hint 1** — Concept reminder
-2. **Hint 2** — Leading question
-3. **Hint 3** — Partial breakdown
-
-The system also tracks how much help the student needed, which can be used for feedback or analytics.
+1. **Scoped AI**: RAG (Retrieval Augmented Generation) ensures answers come strictly from course materials
+2. **Student Chat**: 24/7 Q&A interface with conversation history
+3. **Office Hours Booking**: Direct booking flow when AI can't help
+4. **Professor Dashboard**: Upload materials, view bookings, see analytics
+5. **Analytics**: Shows professors which topics students ask about most
 
 ## Design Principle
 
-> ❌ Bad version: ChatGPT but with slides  
-> ✅ Winning version: AI that refuses to give answers and guides thinking
+> Not replacing professors — augmenting their time. AI constrained to course content prevents hallucinations and cheating shortcuts.
 
 ## License
 
