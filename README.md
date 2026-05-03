@@ -36,13 +36,13 @@ Recycling in education is inefficient — professors answer the same questions o
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (App Router), Tailwind CSS, Framer Motion |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion, lucide-react |
 | Backend | FastAPI (Python) |
-| AI Pipeline | LangChain, OpenAI API (embeddings + chat) |
-| File Parsing | PyPDF, python-pptx, OpenAI Whisper |
+| AI Pipeline | OpenAI API (embeddings: `text-embedding-3-small`, chat: `gpt-4o-mini`) — LangChain is used only for text chunking |
+| File Parsing | PyPDF, python-pptx, OpenAI Whisper (optional, install separately) |
 | Database | Supabase (PostgreSQL + pgvector) |
 | File Storage | Supabase Storage |
-| Auth | Supabase Auth (professor / student roles) |
+| Auth | Supabase Auth (professor / student roles in `profiles` table) |
 | Deployment | Vercel (frontend), Railway (backend) |
 
 ---
@@ -56,22 +56,26 @@ openhours/
 │   │   ├── page.tsx             # Landing page
 │   │   ├── layout.tsx
 │   │   ├── globals.css
+│   │   ├── not-found.tsx        # Custom 404
+│   │   ├── icon.png             # Favicon
 │   │   ├── auth/
 │   │   │   ├── login/page.tsx
-│   │   │   └── signup/page.tsx
+│   │   │   ├── signup/page.tsx
+│   │   │   └── verify/page.tsx  # Email verification holding page
 │   │   ├── student/
-│   │   │   └── page.tsx         # Student chat UI
+│   │   │   └── page.tsx         # Student chat UI + sidebar of past sessions
 │   │   ├── professor/
 │   │   │   ├── page.tsx         # Professor dashboard
-│   │   │   ├── upload/page.tsx  # Upload course materials
+│   │   │   ├── upload/page.tsx  # Upload course materials + create courses
 │   │   │   └── analytics/page.tsx
 │   │   └── api/                 # Next.js API routes (proxy to FastAPI)
 │   │       ├── ask/route.ts
 │   │       ├── upload/route.ts
 │   │       └── analytics/route.ts
 │   ├── lib/
-│   │   ├── supabase.ts
-│   │   └── utils.ts
+│   │   ├── supabase.ts          # Browser-only Supabase client
+│   │   └── utils.ts             # `cn()` className helper
+│   ├── public/                  # Logo assets
 │   ├── package.json
 │   └── .env.example
 │
@@ -79,15 +83,17 @@ openhours/
 │   ├── main.py                  # All API endpoints
 │   ├── services/
 │   │   ├── parser.py            # PDF / PPTX / video parsing
-│   │   ├── embeddings.py        # OpenAI embeddings + chunking
-│   │   ├── rag.py               # LangChain RAG pipeline
-│   │   └── analytics.py         # Question clustering
+│   │   ├── embeddings.py        # Chunking + OpenAI embeddings
+│   │   ├── rag.py               # RAG pipeline (retrieval + chat completion)
+│   │   └── analytics.py         # GPT-based question clustering
 │   ├── requirements.txt
 │   └── .env.example
 │
 ├── supabase/
-│   └── schema.sql               # DB schema + pgvector setup
+│   └── schema.sql               # DB schema + pgvector setup + RLS policies
 │
+├── DEPLOYMENT.md                # Vercel + Railway + Supabase deployment guide
+├── CLAUDE.md                    # Guidance for AI coding assistants
 └── README.md
 ```
 
@@ -188,6 +194,8 @@ Backend runs at `http://localhost:8000`
 
 ## Database Schema
 
+> Canonical source: [`supabase/schema.sql`](./supabase/schema.sql). The snippet below is the core data model for quick reference.
+
 ```sql
 -- Enable pgvector extension
 create extension if not exists vector;
@@ -243,6 +251,26 @@ create table if not exists documents (
 
 create index if not exists documents_course_id_idx on documents(course_id);
 
+-- Chat sessions (student conversation history shown in sidebar)
+create table if not exists chat_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid references profiles(id) on delete cascade not null,
+  course_id   uuid references courses(id) on delete cascade not null,
+  title       text not null,
+  pinned      boolean not null default false,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+
+-- Chat messages (one row per turn within a session)
+create table if not exists chat_messages (
+  id          uuid primary key default gen_random_uuid(),
+  session_id  uuid references chat_sessions(id) on delete cascade not null,
+  role        text not null check (role in ('user', 'assistant')),
+  content     text not null,
+  created_at  timestamptz default now()
+);
+
 -- Question logs (for analytics)
 create table if not exists question_logs (
   id          uuid primary key default gen_random_uuid(),
@@ -288,13 +316,13 @@ Professor uploads file
 Store raw file in Supabase Storage
         ↓
 Parse text from file:
-    PDF     → PyPDF
-    PPTX    → python-pptx
-    Video   → Whisper (transcribe audio → text)
+    PDF       → PyPDF
+    PPTX      → python-pptx
+    A/V (opt) → openai-whisper (install separately; not in requirements.txt)
         ↓
-Split text into chunks (~500 tokens each)
+Split text into chunks (~500 tokens, 50 overlap, via LangChain text splitter)
         ↓
-Convert each chunk to vector embedding (OpenAI)
+Convert each chunk to vector embedding (OpenAI text-embedding-3-small)
         ↓
 Store chunks + embeddings in Supabase pgvector
 ```
@@ -319,9 +347,11 @@ AI answers ONLY based on that context
 
 | Method | Endpoint | Description |
 |---|---|---|
+| `GET` | `/health` | Health check (returns `{"status": "ok"}`) |
 | `POST` | `/upload` | Accept file, parse, embed, store in pgvector |
 | `POST` | `/ask` | Take student question, search pgvector, return AI answer |
 | `GET` | `/analytics/{course_id}` | Return most common question topics |
+| `POST` | `/book` | _(Unused.)_ Creates a row in `bookings` — no UI exposes this |
 
 ---
 
@@ -346,17 +376,17 @@ npx vercel
 | Step | Task | Owner |
 |---|---|---|
 | 1 | Supabase setup, enable pgvector, run schema | Person 4 |
-| 2 | Next.js init, Tailwind, shadcn/ui | Person 1 |
+| 2 | Next.js init, Tailwind | Person 1 |
 | 3 | Supabase Auth + professor/student roles | Person 2 |
 | 4 | FastAPI init + file upload + parsing | Person 3 |
-| 5 | LangChain RAG pipeline + pgvector | Person 3 |
+| 5 | RAG pipeline (OpenAI embeddings + pgvector) | Person 3 |
 | 6 | Professor upload UI | Person 2 |
 | 7 | Student chat UI | Person 1 |
 | 8 | Professor analytics dashboard | Person 2 |
 | 9 | Connect frontend ↔ backend | Person 4 |
 | 10 | Landing / onboarding page | Person 1 |
 | 11 | Deploy frontend + backend | Person 4 |
-| 13 | Polish + demo prep | Everyone |
+| 12 | Polish + demo prep | Everyone |
 
 ---
 
