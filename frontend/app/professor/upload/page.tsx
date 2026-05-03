@@ -12,6 +12,7 @@ import {
   XCircle,
   Loader2,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
@@ -24,6 +25,12 @@ interface UploadStatus {
   file: string;
   status: "uploading" | "done" | "error";
   message?: string;
+}
+
+interface Document {
+  source_file: string;
+  count: number;
+  created_at: string;
 }
 
 function UploadForm() {
@@ -42,17 +49,14 @@ function UploadForm() {
   const [uploads, setUploads] = useState<UploadStatus[]>([]);
   const [dragging, setDragging] = useState(false);
   const [userId, setUserId] = useState("");
+  const [pastFiles, setPastFiles] = useState<Document[]>([]);
+  const [deletingFile, setDeletingFile] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/auth/login"); return; }
       setUserId(user.id);
 
       const { data: profile } = await supabase
@@ -61,10 +65,7 @@ function UploadForm() {
         .eq("id", user.id)
         .single();
 
-      if (profile?.role === "student") {
-        router.push("/student");
-        return;
-      }
+      if (profile?.role === "student") { router.push("/student"); return; }
 
       const { data: courseData } = await supabase
         .from("courses")
@@ -73,12 +74,48 @@ function UploadForm() {
         .order("created_at", { ascending: false });
 
       setCourses(courseData ?? []);
-      if (!selectedCourseId && courseData && courseData.length > 0) {
-        setSelectedCourseId(courseData[0].id);
-      }
+      const courseId = searchParams.get("course") ?? courseData?.[0]?.id ?? "";
+      if (!selectedCourseId && courseId) setSelectedCourseId(courseId);
+      if (courseId) await loadPastFiles(courseId);
     }
     init();
-  }, [router, selectedCourseId]);
+  }, [router]);
+
+  async function loadPastFiles(courseId: string) {
+    if (!courseId) return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("documents")
+      .select("source_file, created_at")
+      .eq("course_id", courseId)
+      .order("created_at", { ascending: false });
+
+    if (!data) { setPastFiles([]); return; }
+
+    // Group by source_file and count chunks
+    const grouped: Record<string, Document> = {};
+    for (const row of data) {
+      if (!row.source_file) continue;
+      if (!grouped[row.source_file]) {
+        grouped[row.source_file] = { source_file: row.source_file, count: 0, created_at: row.created_at };
+      }
+      grouped[row.source_file].count++;
+    }
+    setPastFiles(Object.values(grouped));
+  }
+
+  async function deleteFile(sourceFile: string) {
+    if (!selectedCourseId) return;
+    setDeletingFile(sourceFile);
+    const supabase = createClient();
+    await supabase
+      .from("documents")
+      .delete()
+      .eq("course_id", selectedCourseId)
+      .eq("source_file", sourceFile);
+    await loadPastFiles(selectedCourseId);
+    setDeletingFile(null);
+  }
 
   async function createCourse() {
     if (!newCourseName.trim()) return;
@@ -100,6 +137,7 @@ function UploadForm() {
       setNewCourseName("");
       setNewCourseDesc("");
       setShowNewCourse(false);
+      setPastFiles([]);
     }
     setCreatingCourse(false);
   }
@@ -135,6 +173,8 @@ function UploadForm() {
             : u
         )
       );
+
+      if (res.ok) await loadPastFiles(selectedCourseId);
     } catch {
       setUploads((prev) =>
         prev.map((u) =>
@@ -149,6 +189,10 @@ function UploadForm() {
   function handleFiles(files: FileList | null) {
     if (!files) return;
     Array.from(files).forEach(uploadFile);
+  }
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   }
 
   return (
@@ -167,19 +211,13 @@ function UploadForm() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-bold text-zinc-900 mb-1">
-          Upload course materials
-        </h1>
-        <p className="text-zinc-500 mb-8">
-          PDFs, PowerPoint slides, and video files are supported.
-        </p>
+        <h1 className="text-2xl font-bold text-zinc-900 mb-1">Upload course materials</h1>
+        <p className="text-zinc-500 mb-8">PDFs, PowerPoint slides, and video files are supported.</p>
 
         {/* Course selector */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-zinc-700">
-              Select course
-            </label>
+            <label className="text-sm font-medium text-zinc-700">Select course</label>
             <button
               onClick={() => setShowNewCourse((v) => !v)}
               className="flex items-center gap-1 text-xs text-indigo-600 hover:underline"
@@ -216,19 +254,18 @@ function UploadForm() {
           )}
 
           {courses.length === 0 ? (
-            <p className="text-sm text-zinc-400">
-              No courses yet — create one above.
-            </p>
+            <p className="text-sm text-zinc-400">No courses yet — create one above.</p>
           ) : (
             <select
               value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
+              onChange={(e) => {
+                setSelectedCourseId(e.target.value);
+                loadPastFiles(e.target.value);
+              }}
               className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           )}
@@ -236,30 +273,17 @@ function UploadForm() {
 
         {/* Drop zone */}
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragging(false);
-            handleFiles(e.dataTransfer.files);
-          }}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }}
           onClick={() => fileInputRef.current?.click()}
           className={`bg-white rounded-2xl border-2 border-dashed p-12 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-            dragging
-              ? "border-indigo-400 bg-indigo-50"
-              : "border-zinc-200 hover:border-zinc-300"
+            dragging ? "border-indigo-400 bg-indigo-50" : "border-zinc-200 hover:border-zinc-300"
           } ${!selectedCourseId ? "opacity-50 pointer-events-none" : ""}`}
         >
           <Upload className="w-8 h-8 text-zinc-300 mb-3" />
-          <p className="text-sm font-medium text-zinc-600">
-            Drop files here or click to browse
-          </p>
-          <p className="text-xs text-zinc-400 mt-1">
-            PDF, PPTX, MP4, MOV, MP3 supported
-          </p>
+          <p className="text-sm font-medium text-zinc-600">Drop files here or click to browse</p>
+          <p className="text-xs text-zinc-400 mt-1">PDF, PPTX, MP4, MOV, MP3 supported</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -274,10 +298,7 @@ function UploadForm() {
         {uploads.length > 0 && (
           <div className="mt-6 flex flex-col gap-2">
             {uploads.map((u, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl border border-zinc-100 px-4 py-3 flex items-center gap-3"
-              >
+              <div key={i} className="bg-white rounded-xl border border-zinc-100 px-4 py-3 flex items-center gap-3">
                 {u.status === "uploading" ? (
                   <Loader2 className="w-4 h-4 text-indigo-500 animate-spin shrink-0" />
                 ) : u.status === "done" ? (
@@ -288,9 +309,7 @@ function UploadForm() {
                 <div className="min-w-0">
                   <p className="text-sm text-zinc-700 truncate">{u.file}</p>
                   {u.message && (
-                    <p
-                      className={`text-xs mt-0.5 ${u.status === "error" ? "text-red-500" : "text-zinc-400"}`}
-                    >
+                    <p className={`text-xs mt-0.5 ${u.status === "error" ? "text-red-500" : "text-zinc-400"}`}>
                       {u.message}
                     </p>
                   )}
@@ -300,6 +319,45 @@ function UploadForm() {
             ))}
           </div>
         )}
+
+        {/* Past uploads */}
+        {pastFiles.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-sm font-semibold text-zinc-700 mb-3">Previously uploaded</h2>
+            <div className="flex flex-col gap-2">
+              {pastFiles.map((f) => (
+                <div key={f.source_file} className="bg-white rounded-xl border border-zinc-100 px-4 py-3 flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-zinc-700 truncate">{f.source_file}</p>
+                    <p className="text-xs text-zinc-400 mt-0.5">{f.count} chunks · uploaded {formatDate(f.created_at)}</p>
+                  </div>
+                  <button
+                    onClick={() => deleteFile(f.source_file)}
+                    disabled={deletingFile === f.source_file}
+                    className="text-zinc-300 hover:text-red-500 transition-colors disabled:opacity-50 shrink-0"
+                    aria-label="Delete file"
+                  >
+                    {deletingFile === f.source_file
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Done button */}
+        <div className="mt-8 flex justify-end">
+          <Link
+            href="/professor"
+            className="bg-indigo-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Done
+          </Link>
+        </div>
       </main>
     </div>
   );
