@@ -76,6 +76,12 @@ export default function StudentPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    if (!loading) {
+      inputRef.current?.focus();
+    }
+  }, [loading]);
+
   async function sendMessage() {
     if (!input.trim() || !selectedCourse) return;
 
@@ -257,7 +263,7 @@ export default function StudentPage() {
                 ? `Ask about ${selectedCourse.name}…`
                 : "Select a course first"
             }
-            disabled={!selectedCourse || loading}
+            disabled={!selectedCourse}
             className="flex-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-zinc-50 disabled:text-zinc-400"
           />
           <button
