@@ -1,56 +1,38 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #18181b;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --muted: #71717a;
-  --border: #e4e4e7;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Ensure proper contrast for text */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--foreground);
+/* Dark sections - explicit high contrast */
+.dark-section {
+  background-color: #000000;
+  color: #ffffff;
 }
 
-/* Button styles with proper contrast */
-button, .btn {
-  font-weight: 500;
+.dark-section h1,
+.dark-section h2,
+.dark-section h3 {
+  color: #ffffff;
 }
 
-/* Input styles with proper contrast */
-input, textarea, select {
-  color: var(--foreground);
-  border-color: var(--border);
+.dark-section p {
+  color: #e5e5e5;
 }
 
-input::placeholder, textarea::placeholder {
-  color: var(--muted);
+/* Dark cards */
+.dark-card {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  color: #ffffff;
 }
 
-/* Link styles */
-a {
-  color: var(--primary);
+.dark-card h3,
+.dark-card h4 {
+  color: #ffffff;
 }
 
-a:hover {
-  color: var(--primary-hover);
+.dark-card p {
+  color: #d4d4d4;
 }

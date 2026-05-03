@@ -63,9 +63,9 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 bg-zinc-950">
+      <section className="dark-section py-20 px-6">
         <div className="max-w-5xl mx-auto w-full">
-          <h2 className="text-2xl font-semibold text-center text-zinc-100 mb-12">
+          <h2 className="text-2xl font-semibold text-center mb-12">
             Everything professors and students need
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,15 +101,12 @@ export default function LandingPage() {
                 desc: "When AI isn't enough, students can request a real session directly from the chat.",
               },
             ].map((f) => (
-              <div
-                key={f.title}
-                className="flex flex-col gap-3 p-6 rounded-2xl border border-zinc-800 hover:border-zinc-700 transition-colors bg-zinc-900/50"
-              >
+              <div key={f.title} className="dark-card flex flex-col gap-3 p-6 rounded-2xl hover:border-zinc-700 transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center">
                   {f.icon}
                 </div>
-                <h3 className="font-semibold text-zinc-100">{f.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{f.desc}</p>
+                <h3 className="font-semibold">{f.title}</h3>
+                <p className="text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
