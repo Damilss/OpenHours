@@ -121,12 +121,15 @@ function UploadForm() {
     if (!newCourseName.trim()) return;
     setCreatingCourse(true);
     const supabase = createClient();
+    // Generate a random 6-char uppercase join code
+    const join_code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const { data, error } = await supabase
       .from("courses")
       .insert({
         professor_id: userId,
         name: newCourseName.trim(),
         description: newCourseDesc.trim() || null,
+        join_code,
       })
       .select("id, name")
       .single();
