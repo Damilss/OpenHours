@@ -93,9 +93,7 @@ export default function StudentPage() {
     const supabase = createClient();
 
     const { data: course, error } = await supabase
-      .from("courses")
-      .select("id, name, description")
-      .eq("join_code", joinCode.trim().toUpperCase())
+      .rpc("get_course_by_join_code", { code: joinCode.trim().toUpperCase() })
       .single();
 
     if (error || !course) {

@@ -155,7 +155,6 @@ function UploadForm() {
       setPastFiles([]);
     } else {
       console.error("Create course error:", error);
-      alert("Failed to create course: " + (error?.message ?? "unknown error"));
     }
     setCreatingCourse(false);
   }
