@@ -10,7 +10,7 @@ OpenHours lets professors upload their course materials (PDFs, slides, lecture v
 
 ## The Idea
 
-Recycling in education is inefficient — professors answer the same questions over and over, students wait days for responses, and generic AI tools give answers that have nothing to do with the course. OpenHours fixes this by:
+Professors answer the same questions over and over, students wait days for responses, and generic AI tools give answers that have nothing to do with the course. OpenHours fixes this by:
 
 - Giving students instant, scoped AI help 24/7
 - Freeing professors from repetitive questions
