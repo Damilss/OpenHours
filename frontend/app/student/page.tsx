@@ -2,39 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  BookOpen,
-  Send,
-  LogOut,
-  ChevronDown,
-  Plus,
-  MessageSquare,
-  MoreHorizontal,
-  Trash2,
-  Pencil,
-  Pin,
+  BookOpen, Send, CalendarClock, LogOut, ChevronDown,
+  Plus, MessageSquare, MoreHorizontal, Trash2, Pencil, Pin, Hash, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-interface Course {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  course_id: string;
-  updated_at: string;
-  pinned: boolean;
-}
+interface Message { role: "user" | "assistant"; content: string; }
+interface Course { id: string; name: string; description: string; }
+interface ChatSession { id: string; title: string; course_id: string; updated_at: string; pinned: boolean; }
 
 export default function StudentPage() {
   const router = useRouter();
@@ -48,6 +26,10 @@ export default function StudentPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joining, setJoining] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -62,43 +44,35 @@ export default function StudentPage() {
       if (!user) { router.push("/auth/login"); return; }
 
       const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, role")
-        .eq("id", user.id)
-        .single();
+        .from("profiles").select("full_name, role").eq("id", user.id).single();
 
       if (profile?.role === "professor") { router.push("/professor"); return; }
 
       setUserName(profile?.full_name ?? "Student");
       setUserId(user.id);
 
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("id, name, description")
-        .order("created_at", { ascending: false });
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("course_id, courses(id, name, description)")
+        .eq("student_id", user.id);
 
-      setCourses(courseData ?? []);
-      if (courseData && courseData.length > 0) {
-        setSelectedCourse(courseData[0]);
-        await loadSessions(user.id, courseData[0].id, true);
+      const enrolled = (enrollments ?? [])
+        .map((e: any) => e.courses)
+        .filter(Boolean) as Course[];
+
+      setCourses(enrolled);
+      if (enrolled.length > 0) {
+        setSelectedCourse(enrolled[0]);
+        await loadSessions(user.id, enrolled[0].id, true);
       }
     }
     init();
   }, [router]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => { if (!loading) inputRef.current?.focus(); }, [loading]);
+  useEffect(() => { if (renamingId) renameRef.current?.focus(); }, [renamingId]);
 
-  useEffect(() => {
-    if (!loading) inputRef.current?.focus();
-  }, [loading]);
-
-  useEffect(() => {
-    if (renamingId) renameRef.current?.focus();
-  }, [renamingId]);
-
-  // Close menu when clicking outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       setMenuOpenId((current) => {
@@ -112,6 +86,42 @@ export default function StudentPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  async function joinCourse() {
+    if (!joinCode.trim() || !userId) return;
+    setJoining(true);
+    setJoinError("");
+    const supabase = createClient();
+
+    const { data: course, error } = await supabase
+      .rpc("get_course_by_join_code", { code: joinCode.trim().toUpperCase() })
+      .single();
+
+    if (error || !course) {
+      setJoinError("Invalid code. Please check and try again.");
+      setJoining(false);
+      return;
+    }
+
+    const { data: existing } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("student_id", userId)
+      .eq("course_id", course.id)
+      .single();
+
+    if (!existing) {
+      await supabase.from("enrollments").insert({ student_id: userId, course_id: course.id });
+    }
+
+    setCourses((prev) => prev.find((c) => c.id === course.id) ? prev : [...prev, course]);
+    setSelectedCourse(course);
+    setShowJoinModal(false);
+    setJoinCode("");
+    setCourseOpen(false);
+    await loadSessions(userId, course.id, true);
+    setJoining(false);
+  }
+
   async function loadSessions(uid: string, courseId: string, keepMessages = false) {
     const supabase = createClient();
     const { data } = await supabase
@@ -122,19 +132,14 @@ export default function StudentPage() {
       .order("pinned", { ascending: false })
       .order("updated_at", { ascending: false });
     setSessions(data ?? []);
-    if (!keepMessages) {
-      setActiveSessionId(null);
-      setMessages([]);
-    }
+    if (!keepMessages) { setActiveSessionId(null); setMessages([]); }
   }
 
   async function loadSession(sessionId: string) {
     const supabase = createClient();
     const { data } = await supabase
-      .from("chat_messages")
-      .select("role, content")
-      .eq("session_id", sessionId)
-      .order("created_at", { ascending: true });
+      .from("chat_messages").select("role, content")
+      .eq("session_id", sessionId).order("created_at", { ascending: true });
     setMessages((data as Message[]) ?? []);
     setActiveSessionId(sessionId);
   }
@@ -148,47 +153,30 @@ export default function StudentPage() {
   async function deleteSession(sessionId: string) {
     const supabase = createClient();
     await supabase.from("chat_sessions").delete().eq("id", sessionId);
-    if (activeSessionId === sessionId) {
-      setMessages([]);
-      setActiveSessionId(null);
-    }
-    if (userId && selectedCourse) {
-      await loadSessions(userId, selectedCourse.id, true);
-    }
+    if (activeSessionId === sessionId) { setMessages([]); setActiveSessionId(null); }
+    if (userId && selectedCourse) await loadSessions(userId, selectedCourse.id, true);
     setMenuOpenId(null);
   }
 
   async function renameSession(sessionId: string) {
     if (!renameValue.trim()) { setRenamingId(null); return; }
     const supabase = createClient();
-    await supabase
-      .from("chat_sessions")
-      .update({ title: renameValue.trim() })
-      .eq("id", sessionId);
+    await supabase.from("chat_sessions").update({ title: renameValue.trim() }).eq("id", sessionId);
     setRenamingId(null);
-    if (userId && selectedCourse) {
-      await loadSessions(userId, selectedCourse.id, true);
-    }
+    if (userId && selectedCourse) await loadSessions(userId, selectedCourse.id, true);
   }
 
   async function togglePin(sessionId: string, currentlyPinned: boolean) {
     const supabase = createClient();
-    await supabase
-      .from("chat_sessions")
-      .update({ pinned: !currentlyPinned })
-      .eq("id", sessionId);
-    if (userId && selectedCourse) {
-      await loadSessions(userId, selectedCourse.id, true);
-    }
+    await supabase.from("chat_sessions").update({ pinned: !currentlyPinned }).eq("id", sessionId);
+    if (userId && selectedCourse) await loadSessions(userId, selectedCourse.id, true);
     setMenuOpenId(null);
   }
 
   async function sendMessage() {
     if (!input.trim() || !selectedCourse || !userId) return;
-
     const question = input;
-    const userMsg: Message = { role: "user", content: question };
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, { role: "user", content: question }]);
     setInput("");
     setLoading(true);
 
@@ -200,8 +188,7 @@ export default function StudentPage() {
         const { data: newSession } = await supabase
           .from("chat_sessions")
           .insert({ student_id: userId, course_id: selectedCourse.id, title })
-          .select("id")
-          .single();
+          .select("id").single();
         sessionId = newSession?.id ?? null;
         setActiveSessionId(sessionId);
       }
@@ -222,18 +209,12 @@ export default function StudentPage() {
           { session_id: sessionId, role: "user", content: question },
           { session_id: sessionId, role: "assistant", content: answer },
         ]);
-        await supabase
-          .from("chat_sessions")
-          .update({ updated_at: new Date().toISOString() })
-          .eq("id", sessionId);
+        await supabase.from("chat_sessions").update({ updated_at: new Date().toISOString() }).eq("id", sessionId);
         await loadSessions(userId, selectedCourse.id, true);
         setActiveSessionId(sessionId);
       }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Something went wrong. Please try again." },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -269,6 +250,39 @@ export default function StudentPage() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Join course modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-zinc-900">Join a course</h2>
+              <button onClick={() => { setShowJoinModal(false); setJoinCode(""); setJoinError(""); }} className="text-zinc-400 hover:text-zinc-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-zinc-500 mb-4">Enter the class code your professor gave you.</p>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && joinCourse()}
+              placeholder="e.g. AB12CD"
+              maxLength={8}
+              className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2"
+              autoFocus
+            />
+            {joinError && <p className="text-xs text-red-500 mb-2">{joinError}</p>}
+            <button
+              onClick={joinCourse}
+              disabled={!joinCode.trim() || joining}
+              className="w-full bg-indigo-600 text-white text-sm py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 mt-1"
+            >
+              {joining ? "Joining…" : "Join course"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white z-10">
         <div className="flex items-center gap-2">
@@ -286,25 +300,32 @@ export default function StudentPage() {
           </button>
           {courseOpen && (
             <div className="absolute top-full mt-1 left-0 bg-white border border-zinc-200 rounded-xl shadow-lg z-10 min-w-48">
-              {courses.length === 0 ? (
-                <p className="text-sm text-zinc-400 px-4 py-3">No courses available</p>
-              ) : (
-                courses.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => handleCourseSelect(c)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl"
-                  >
-                    {c.name}
-                  </button>
-                ))
-              )}
+              {courses.map((c) => (
+                <button key={c.id} onClick={() => handleCourseSelect(c)}
+                  className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl">
+                  {c.name}
+                </button>
+              ))}
+              <div className="border-t border-zinc-100">
+                <button
+                  onClick={() => { setCourseOpen(false); setShowJoinModal(true); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 hover:bg-zinc-50 rounded-b-xl flex items-center gap-2"
+                >
+                  <Hash className="w-3.5 h-3.5" />
+                  Join a course
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-zinc-500">{userName}</span>
+          <Link href="/student/book"
+            className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
+            <CalendarClock className="w-4 h-4" />
+            Book office hours
+          </Link>
           <button onClick={handleSignOut} className="text-zinc-400 hover:text-zinc-600 transition-colors" aria-label="Sign out">
             <LogOut className="w-4 h-4" />
           </button>
@@ -315,10 +336,8 @@ export default function StudentPage() {
         {/* Sidebar */}
         <aside className="w-64 border-r border-zinc-100 bg-white flex flex-col shrink-0">
           <div className="p-3 border-b border-zinc-100">
-            <button
-              onClick={startNewChat}
-              className="w-full flex items-center gap-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-2 hover:bg-indigo-700 transition-colors"
-            >
+            <button onClick={startNewChat}
+              className="w-full flex items-center gap-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-2 hover:bg-indigo-700 transition-colors">
               <Plus className="w-4 h-4" />
               New chat
             </button>
@@ -327,7 +346,7 @@ export default function StudentPage() {
           <div className="flex-1 overflow-y-auto p-2">
             {sessions.length === 0 ? (
               <p className="text-xs text-zinc-400 text-center mt-6 px-4">
-                No past chats yet. Ask a question to get started.
+                {courses.length === 0 ? "Join a course to get started." : "No past chats yet."}
               </p>
             ) : (
               <>
@@ -335,49 +354,25 @@ export default function StudentPage() {
                   <div className="mb-1">
                     <p className="text-xs text-zinc-400 font-medium px-3 py-1">Pinned</p>
                     {pinnedSessions.map((s) => (
-                      <SessionItem
-                        key={s.id}
-                        session={s}
-                        isActive={activeSessionId === s.id}
-                        menuOpenId={menuOpenId}
-                        renamingId={renamingId}
-                        renameValue={renameValue}
-                        renameRef={renameRef}
-                        onLoad={loadSession}
-                        onMenuToggle={(id) => setMenuOpenId(menuOpenId === id ? null : id)}
+                      <SessionItem key={s.id} session={s} isActive={activeSessionId === s.id}
+                        menuOpenId={menuOpenId} renamingId={renamingId} renameValue={renameValue} renameRef={renameRef}
+                        onLoad={loadSession} onMenuToggle={(id) => setMenuOpenId(menuOpenId === id ? null : id)}
                         onRenameStart={(s) => { setRenamingId(s.id); setRenameValue(s.title); setMenuOpenId(null); }}
-                        onRenameChange={setRenameValue}
-                        onRenameSubmit={renameSession}
-                        onDelete={deleteSession}
-                        onTogglePin={togglePin}
-                        formatDate={formatDate}
-                      />
+                        onRenameChange={setRenameValue} onRenameSubmit={renameSession}
+                        onDelete={deleteSession} onTogglePin={togglePin} formatDate={formatDate} />
                     ))}
                   </div>
                 )}
                 {unpinnedSessions.length > 0 && (
                   <div>
-                    {pinnedSessions.length > 0 && (
-                      <p className="text-xs text-zinc-400 font-medium px-3 py-1">Recent</p>
-                    )}
+                    {pinnedSessions.length > 0 && <p className="text-xs text-zinc-400 font-medium px-3 py-1">Recent</p>}
                     {unpinnedSessions.map((s) => (
-                      <SessionItem
-                        key={s.id}
-                        session={s}
-                        isActive={activeSessionId === s.id}
-                        menuOpenId={menuOpenId}
-                        renamingId={renamingId}
-                        renameValue={renameValue}
-                        renameRef={renameRef}
-                        onLoad={loadSession}
-                        onMenuToggle={(id) => setMenuOpenId(menuOpenId === id ? null : id)}
+                      <SessionItem key={s.id} session={s} isActive={activeSessionId === s.id}
+                        menuOpenId={menuOpenId} renamingId={renamingId} renameValue={renameValue} renameRef={renameRef}
+                        onLoad={loadSession} onMenuToggle={(id) => setMenuOpenId(menuOpenId === id ? null : id)}
                         onRenameStart={(s) => { setRenamingId(s.id); setRenameValue(s.title); setMenuOpenId(null); }}
-                        onRenameChange={setRenameValue}
-                        onRenameSubmit={renameSession}
-                        onDelete={deleteSession}
-                        onTogglePin={togglePin}
-                        formatDate={formatDate}
-                      />
+                        onRenameChange={setRenameValue} onRenameSubmit={renameSession}
+                        onDelete={deleteSession} onTogglePin={togglePin} formatDate={formatDate} />
                     ))}
                   </div>
                 )}
@@ -395,21 +390,30 @@ export default function StudentPage() {
                   <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <h2 className="font-semibold text-zinc-800 mb-2">
-                    {selectedCourse ? `Ask about ${selectedCourse.name}` : "Select a course to get started"}
-                  </h2>
-                  <p className="text-sm text-zinc-400 max-w-xs mx-auto">
-                    I&apos;ll answer based strictly on your course materials.
-                  </p>
+                  {courses.length === 0 ? (
+                    <>
+                      <h2 className="font-semibold text-zinc-800 mb-2">No courses yet</h2>
+                      <p className="text-sm text-zinc-400 max-w-xs mx-auto mb-4">Enter a class code from your professor to get started.</p>
+                      <button onClick={() => setShowJoinModal(true)}
+                        className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Join a course
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="font-semibold text-zinc-800 mb-2">
+                        {selectedCourse ? `Ask about ${selectedCourse.name}` : "Select a course to get started"}
+                      </h2>
+                      <p className="text-sm text-zinc-400 max-w-xs mx-auto">I&apos;ll answer based strictly on your course materials.</p>
+                    </>
+                  )}
                 </div>
               )}
 
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-lg rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-br-sm"
-                      : "bg-white border border-zinc-200 text-zinc-800 rounded-bl-sm"
+                    msg.role === "user" ? "bg-indigo-600 text-white rounded-br-sm" : "bg-white border border-zinc-200 text-zinc-800 rounded-bl-sm"
                   }`}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
@@ -439,16 +443,13 @@ export default function StudentPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !loading && sendMessage()}
-                placeholder={selectedCourse ? `Ask about ${selectedCourse.name}…` : "Select a course first"}
+                placeholder={selectedCourse ? `Ask about ${selectedCourse.name}…` : "Join a course to get started"}
                 disabled={!selectedCourse}
                 className="flex-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-zinc-50 disabled:text-zinc-400"
               />
-              <button
-                onClick={sendMessage}
-                disabled={!input.trim() || !selectedCourse || loading}
+              <button onClick={sendMessage} disabled={!input.trim() || !selectedCourse || loading}
                 className="bg-indigo-600 text-white rounded-xl px-4 py-2.5 hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                aria-label="Send message"
-              >
+                aria-label="Send message">
                 <Send className="w-4 h-4" />
               </button>
             </div>
@@ -477,20 +478,9 @@ interface SessionItemProps {
 }
 
 function SessionItem({
-  session,
-  isActive,
-  menuOpenId,
-  renamingId,
-  renameValue,
-  renameRef,
-  onLoad,
-  onMenuToggle,
-  onRenameStart,
-  onRenameChange,
-  onRenameSubmit,
-  onDelete,
-  onTogglePin,
-  formatDate,
+  session, isActive, menuOpenId, renamingId, renameValue, renameRef,
+  onLoad, onMenuToggle, onRenameStart, onRenameChange, onRenameSubmit,
+  onDelete, onTogglePin, formatDate,
 }: SessionItemProps) {
   const isMenuOpen = menuOpenId === session.id;
   const isRenaming = renamingId === session.id;
@@ -504,20 +494,14 @@ function SessionItem({
             ref={renameRef}
             value={renameValue}
             onChange={(e) => onRenameChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onRenameSubmit(session.id);
-              if (e.key === "Escape") onRenameChange("");
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter") onRenameSubmit(session.id); if (e.key === "Escape") onRenameChange(""); }}
             onBlur={() => onRenameSubmit(session.id)}
             className="w-full text-xs border border-indigo-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
       ) : (
         <div className="flex items-center gap-1 px-2 py-2.5">
-          <button
-            onClick={() => onLoad(session.id)}
-            className="flex items-start gap-2 flex-1 min-w-0 text-left"
-          >
+          <button onClick={() => onLoad(session.id)} className="flex items-start gap-2 flex-1 min-w-0 text-left">
             <MessageSquare className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${isActive ? "text-indigo-500" : "text-zinc-400"}`} />
             <div className="min-w-0">
               <p className={`text-xs font-medium truncate leading-snug ${isActive ? "text-indigo-700" : "text-zinc-700"}`}>
@@ -528,7 +512,6 @@ function SessionItem({
             </div>
           </button>
 
-          {/* Three dots menu */}
           <div className="relative shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); onMenuToggle(session.id); setConfirmDelete(false); }}
@@ -540,56 +523,39 @@ function SessionItem({
 
             {isMenuOpen && (
               <div id={`menu-${session.id}`} className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 w-40 py-1">
-                <button
-                  onClick={() => onRenameStart(session)}
+                <button onClick={() => onRenameStart(session)}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e4e4e7")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors"
-                >
-                  <Pencil className="w-3.5 h-3.5 text-zinc-400" />
-                  Rename
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors">
+                  <Pencil className="w-3.5 h-3.5 text-zinc-400" />Rename
                 </button>
-                <button
-                  onClick={() => onTogglePin(session.id, session.pinned)}
+                <button onClick={() => onTogglePin(session.id, session.pinned)}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e4e4e7")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors"
-                >
-                  <Pin className="w-3.5 h-3.5 text-zinc-400" />
-                  {session.pinned ? "Unpin" : "Pin to top"}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 transition-colors">
+                  <Pin className="w-3.5 h-3.5 text-zinc-400" />{session.pinned ? "Unpin" : "Pin to top"}
                 </button>
                 <div className="border-t border-zinc-100 my-1" />
                 {confirmDelete ? (
                   <div className="px-3 py-2">
                     <p className="text-xs text-zinc-600 mb-2">Delete this chat?</p>
                     <div className="flex gap-1.5">
-                      <button
-                        onClick={() => onDelete(session.id)}
+                      <button onClick={() => onDelete(session.id)}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                        className="flex-1 text-xs bg-red-600 text-white rounded-md px-2 py-1 transition-colors"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(false)}
+                        className="flex-1 text-xs bg-red-600 text-white rounded-md px-2 py-1 transition-colors">Delete</button>
+                      <button onClick={() => setConfirmDelete(false)}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d4d4d8")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                        className="flex-1 text-xs bg-zinc-100 text-zinc-700 rounded-md px-2 py-1 transition-colors"
-                      >
-                        Cancel
-                      </button>
+                        className="flex-1 text-xs bg-zinc-100 text-zinc-700 rounded-md px-2 py-1 transition-colors">Cancel</button>
                     </div>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmDelete(true)}
+                  <button onClick={() => setConfirmDelete(true)}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />Delete
                   </button>
                 )}
               </div>

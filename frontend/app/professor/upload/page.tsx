@@ -27,7 +27,7 @@ interface UploadStatus {
   message?: string;
 }
 
-interface Document {
+interface PastFile {
   source_file: string;
   count: number;
   created_at: string;
@@ -49,7 +49,7 @@ function UploadForm() {
   const [uploads, setUploads] = useState<UploadStatus[]>([]);
   const [dragging, setDragging] = useState(false);
   const [userId, setUserId] = useState("");
-  const [pastFiles, setPastFiles] = useState<Document[]>([]);
+  const [pastFiles, setPastFiles] = useState<PastFile[]>([]);
   const [deletingFile, setDeletingFile] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,8 +75,10 @@ function UploadForm() {
 
       setCourses(courseData ?? []);
       const courseId = searchParams.get("course") ?? courseData?.[0]?.id ?? "";
-      if (!selectedCourseId && courseId) setSelectedCourseId(courseId);
-      if (courseId) await loadPastFiles(courseId);
+      if (courseId) {
+        setSelectedCourseId(courseId);
+        await loadPastFiles(courseId);
+      }
     }
     init();
   }, [router]);
@@ -93,7 +95,7 @@ function UploadForm() {
     if (!data) { setPastFiles([]); return; }
 
     // Group by source_file and count chunks
-    const grouped: Record<string, Document> = {};
+    const grouped: Record<string, PastFile> = {};
     for (const row of data) {
       if (!row.source_file) continue;
       if (!grouped[row.source_file]) {
@@ -121,23 +123,38 @@ function UploadForm() {
     if (!newCourseName.trim()) return;
     setCreatingCourse(true);
     const supabase = createClient();
+
+    // Always fetch the current user directly to avoid stale userId state
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setCreatingCourse(false);
+      return;
+    }
+
+    const join_code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const { data, error } = await supabase
       .from("courses")
       .insert({
-        professor_id: userId,
+        professor_id: user.id,
         name: newCourseName.trim(),
         description: newCourseDesc.trim() || null,
+        join_code,
       })
       .select("id, name")
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error("Failed to create course:", error.message, error.details, error.hint);
+      alert(`Failed to create course: ${error.message}`);
+    } else if (data) {
       setCourses((prev) => [data, ...prev]);
       setSelectedCourseId(data.id);
       setNewCourseName("");
       setNewCourseDesc("");
       setShowNewCourse(false);
       setPastFiles([]);
+    } else {
+      console.error("Create course error:", error);
     }
     setCreatingCourse(false);
   }
@@ -198,10 +215,7 @@ function UploadForm() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="bg-white border-b border-zinc-100 px-6 py-3 flex items-center gap-4">
-        <Link
-          href="/professor"
-          className="text-zinc-400 hover:text-zinc-600 transition-colors"
-        >
+        <Link href="/professor" className="text-zinc-400 hover:text-zinc-600 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex items-center gap-2">
@@ -258,10 +272,7 @@ function UploadForm() {
           ) : (
             <select
               value={selectedCourseId}
-              onChange={(e) => {
-                setSelectedCourseId(e.target.value);
-                loadPastFiles(e.target.value);
-              }}
+              onChange={(e) => { setSelectedCourseId(e.target.value); loadPastFiles(e.target.value); }}
               className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {courses.map((c) => (
