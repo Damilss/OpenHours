@@ -15,7 +15,7 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-8 py-4 border-b border-zinc-100">
         <div className="flex items-center gap-2">
-          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={24} height={24} />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-lg tracking-tight">OpenHours</span>
         </div>
         <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-zinc-100 py-6 px-8 flex items-center justify-between text-sm text-zinc-400">
         <div className="flex items-center gap-2">
-          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={16} height={16} />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span>OpenHours</span>
         </div>
         <span>Built for KiroHacks · MIT License</span>
