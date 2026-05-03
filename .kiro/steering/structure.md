@@ -15,8 +15,7 @@ OpenHours/
 │   │   │   ├── login/page.tsx
 │   │   │   └── signup/page.tsx
 │   │   ├── student/
-│   │   │   ├── page.tsx         # Student chat UI
-│   │   │   └── book/page.tsx    # Book office hours
+│   │   │   └── page.tsx         # Student chat UI
 │   │   ├── professor/
 │   │   │   ├── page.tsx         # Professor dashboard
 │   │   │   ├── upload/page.tsx  # Upload course materials
@@ -24,7 +23,6 @@ OpenHours/
 │   │   └── api/                 # Next.js API routes (proxy to FastAPI)
 │   │       ├── ask/route.ts
 │   │       ├── upload/route.ts
-│   │       ├── book/route.ts
 │   │       └── analytics/route.ts
 │   ├── lib/
 │   │   ├── supabase.ts          # Supabase client
