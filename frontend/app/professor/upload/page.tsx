@@ -207,12 +207,6 @@ function UploadForm() {
             <span className="font-semibold text-sm">OpenHours</span>
           </div>
         </div>
-        <Link
-          href="/professor"
-          className="bg-indigo-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
-        >
-          Done
-        </Link>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
@@ -353,6 +347,16 @@ function UploadForm() {
             </div>
           </div>
         )}
+
+        {/* Done button */}
+        <div className="mt-8 flex justify-end">
+          <Link
+            href="/professor"
+            className="bg-indigo-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Done
+          </Link>
+        </div>
       </main>
     </div>
   );
