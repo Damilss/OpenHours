@@ -2,17 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  BookOpen,
-  Send,
-  LogOut,
-  ChevronDown,
-  Plus,
-  MessageSquare,
-  MoreHorizontal,
-  Trash2,
-  Pencil,
-  Pin,
+  BookOpen, Send, CalendarClock, LogOut, ChevronDown,
+  Plus, MessageSquare, MoreHorizontal, Trash2, Pencil, Pin, Hash, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -48,6 +41,10 @@ export default function StudentPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joining, setJoining] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -298,6 +295,39 @@ export default function StudentPage() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Join course modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-zinc-900">Join a course</h2>
+              <button onClick={() => { setShowJoinModal(false); setJoinCode(""); setJoinError(""); }} className="text-zinc-400 hover:text-zinc-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-zinc-500 mb-4">Enter the class code your professor gave you.</p>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && joinCourse()}
+              placeholder="e.g. AB12CD"
+              maxLength={8}
+              className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2"
+              autoFocus
+            />
+            {joinError && <p className="text-xs text-red-500 mb-2">{joinError}</p>}
+            <button
+              onClick={joinCourse}
+              disabled={!joinCode.trim() || joining}
+              className="w-full bg-indigo-600 text-white text-sm py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 mt-1"
+            >
+              {joining ? "Joining…" : "Join course"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white z-10">
         <div className="flex items-center gap-2">
@@ -315,25 +345,35 @@ export default function StudentPage() {
           </button>
           {courseOpen && (
             <div className="absolute top-full mt-1 left-0 bg-white border border-zinc-200 rounded-xl shadow-lg z-10 min-w-48">
-              {courses.length === 0 ? (
-                <p className="text-sm text-zinc-400 px-4 py-3">No courses available</p>
-              ) : (
-                courses.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => handleCourseSelect(c)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl"
-                  >
-                    {c.name}
-                  </button>
-                ))
-              )}
+              {courses.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleCourseSelect(c)}
+                  className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl"
+                >
+                  {c.name}
+                </button>
+              ))}
+              <div className="border-t border-zinc-100">
+                <button
+                  onClick={() => { setCourseOpen(false); setShowJoinModal(true); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 hover:bg-zinc-50 rounded-b-xl flex items-center gap-2"
+                >
+                  <Hash className="w-3.5 h-3.5" />
+                  Join a course
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-zinc-500">{userName}</span>
+          <Link href="/student/book"
+            className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
+            <CalendarClock className="w-4 h-4" />
+            Book office hours
+          </Link>
           <button onClick={handleSignOut} className="text-zinc-400 hover:text-zinc-600 transition-colors" aria-label="Sign out">
             <LogOut className="w-4 h-4" />
           </button>
