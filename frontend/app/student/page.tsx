@@ -8,6 +8,8 @@ import {
   CalendarClock,
   LogOut,
   ChevronDown,
+  Plus,
+  MessageSquare,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -23,6 +25,13 @@ interface Course {
   description: string;
 }
 
+interface ChatSession {
+  id: string;
+  title: string;
+  course_id: string;
+  updated_at: string;
+}
+
 export default function StudentPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -32,6 +41,9 @@ export default function StudentPage() {
   const [loading, setLoading] = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +70,7 @@ export default function StudentPage() {
       }
 
       setUserName(profile?.full_name ?? "Student");
+      setUserId(user.id);
 
       const { data: courseData } = await supabase
         .from("courses")
@@ -67,6 +80,7 @@ export default function StudentPage() {
       setCourses(courseData ?? []);
       if (courseData && courseData.length > 0) {
         setSelectedCourse(courseData[0]);
+        await loadSessions(user.id, courseData[0].id);
       }
     }
     init();
@@ -82,33 +96,99 @@ export default function StudentPage() {
     }
   }, [loading]);
 
-  async function sendMessage() {
-    if (!input.trim() || !selectedCourse) return;
+  async function loadSessions(uid: string, courseId: string) {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("chat_sessions")
+      .select("id, title, course_id, updated_at")
+      .eq("student_id", uid)
+      .eq("course_id", courseId)
+      .order("updated_at", { ascending: false });
+    setSessions(data ?? []);
+    setActiveSessionId(null);
+    setMessages([]);
+  }
 
-    const userMsg: Message = { role: "user", content: input };
+  async function loadSession(sessionId: string) {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true });
+    setMessages((data as Message[]) ?? []);
+    setActiveSessionId(sessionId);
+  }
+
+  async function startNewChat() {
+    setMessages([]);
+    setActiveSessionId(null);
+    inputRef.current?.focus();
+  }
+
+  async function sendMessage() {
+    if (!input.trim() || !selectedCourse || !userId) return;
+
+    const question = input;
+    const userMsg: Message = { role: "user", content: question };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
+      // Create a new session if this is the first message
+      let sessionId = activeSessionId;
+      if (!sessionId) {
+        const supabase = createClient();
+        const title =
+          question.length > 50 ? question.slice(0, 50) + "…" : question;
+        const { data: newSession } = await supabase
+          .from("chat_sessions")
+          .insert({
+            student_id: userId,
+            course_id: selectedCourse.id,
+            title,
+          })
+          .select("id")
+          .single();
+        sessionId = newSession?.id ?? null;
+        setActiveSessionId(sessionId);
+      }
+
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: input,
+          question,
           course_id: selectedCourse.id,
           history: messages,
         }),
       });
 
       const data = await res.json();
+      const answer = data.answer ?? "Sorry, I couldn't get a response.";
+
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: data.answer ?? "Sorry, I couldn't get a response.",
-        },
+        { role: "assistant", content: answer },
       ]);
+
+      // Save both messages and update session timestamp
+      if (sessionId) {
+        const supabase = createClient();
+        await supabase.from("chat_messages").insert([
+          { session_id: sessionId, role: "user", content: question },
+          { session_id: sessionId, role: "assistant", content: answer },
+        ]);
+        await supabase
+          .from("chat_sessions")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
+
+        // Refresh sidebar
+        await loadSessions(userId, selectedCourse.id);
+        setActiveSessionId(sessionId);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -129,10 +209,30 @@ export default function StudentPage() {
     router.push("/");
   }
 
+  async function handleCourseSelect(course: Course) {
+    setSelectedCourse(course);
+    setCourseOpen(false);
+    if (userId) {
+      await loadSessions(userId, course.id);
+    }
+  }
+
+  function formatDate(iso: string) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffDays = Math.floor(
+      (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return d.toLocaleDateString();
+  }
+
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white">
+      <header className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 bg-white z-10">
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-indigo-600" />
           <span className="font-semibold text-sm">OpenHours</span>
@@ -159,11 +259,7 @@ export default function StudentPage() {
                 courses.map((c) => (
                   <button
                     key={c.id}
-                    onClick={() => {
-                      setSelectedCourse(c);
-                      setCourseOpen(false);
-                      setMessages([]);
-                    }}
+                    onClick={() => handleCourseSelect(c)}
                     className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl last:rounded-b-xl"
                   >
                     {c.name}
@@ -193,87 +289,140 @@ export default function StudentPage() {
         </div>
       </header>
 
-      {/* Chat area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 bg-zinc-50">
-        <div className="max-w-2xl mx-auto flex flex-col gap-4">
-          {messages.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-6 h-6 text-indigo-600" />
-              </div>
-              <h2 className="font-semibold text-zinc-800 mb-2">
-                {selectedCourse
-                  ? `Ask about ${selectedCourse.name}`
-                  : "Select a course to get started"}
-              </h2>
-              <p className="text-sm text-zinc-400 max-w-xs mx-auto">
-                I&apos;ll answer based strictly on your course materials.
-              </p>
-            </div>
-          )}
-
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside className="w-64 border-r border-zinc-100 bg-white flex flex-col shrink-0">
+          <div className="p-3 border-b border-zinc-100">
+            <button
+              onClick={startNewChat}
+              className="w-full flex items-center gap-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-2 hover:bg-indigo-700 transition-colors"
             >
-              <div
-                className={`max-w-lg rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-white border border-zinc-200 text-zinc-800 rounded-bl-sm"
-                }`}
-              >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              </div>
-            </div>
-          ))}
+              <Plus className="w-4 h-4" />
+              New chat
+            </button>
+          </div>
 
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-zinc-200 rounded-2xl rounded-bl-sm px-4 py-3">
-                <div className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-2 h-2 rounded-full bg-zinc-300 animate-bounce"
-                      style={{ animationDelay: `${i * 0.15}s` }}
-                    />
-                  ))}
+          <div className="flex-1 overflow-y-auto p-2">
+            {sessions.length === 0 ? (
+              <p className="text-xs text-zinc-400 text-center mt-6 px-4">
+                No past chats yet. Ask a question to get started.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-0.5">
+                {sessions.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => loadSession(s.id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors group ${
+                      activeSessionId === s.id
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "hover:bg-zinc-50 text-zinc-700"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="w-3.5 h-3.5 mt-0.5 shrink-0 text-zinc-400" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate leading-snug">
+                          {s.title}
+                        </p>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          {formatDate(s.updated_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Main chat area */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4 py-6 bg-zinc-50">
+            <div className="max-w-2xl mx-auto flex flex-col gap-4">
+              {messages.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <h2 className="font-semibold text-zinc-800 mb-2">
+                    {selectedCourse
+                      ? `Ask about ${selectedCourse.name}`
+                      : "Select a course to get started"}
+                  </h2>
+                  <p className="text-sm text-zinc-400 max-w-xs mx-auto">
+                    I&apos;ll answer based strictly on your course materials.
+                  </p>
                 </div>
-              </div>
+              )}
+
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-lg rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-indigo-600 text-white rounded-br-sm"
+                        : "bg-white border border-zinc-200 text-zinc-800 rounded-bl-sm"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-zinc-200 rounded-2xl rounded-bl-sm px-4 py-3">
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 rounded-full bg-zinc-300 animate-bounce"
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={bottomRef} />
             </div>
-          )}
+          </div>
 
-          <div ref={bottomRef} />
-        </div>
-      </div>
-
-      {/* Input */}
-      <div className="border-t border-zinc-100 bg-white px-4 py-4">
-        <div className="max-w-2xl mx-auto flex gap-3">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !loading && sendMessage()}
-            placeholder={
-              selectedCourse
-                ? `Ask about ${selectedCourse.name}…`
-                : "Select a course first"
-            }
-            disabled={!selectedCourse}
-            className="flex-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-zinc-50 disabled:text-zinc-400"
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || !selectedCourse || loading}
-            className="bg-indigo-600 text-white rounded-xl px-4 py-2.5 hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label="Send message"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {/* Input */}
+          <div className="border-t border-zinc-100 bg-white px-4 py-4">
+            <div className="max-w-2xl mx-auto flex gap-3">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && !e.shiftKey && !loading && sendMessage()
+                }
+                placeholder={
+                  selectedCourse
+                    ? `Ask about ${selectedCourse.name}…`
+                    : "Select a course first"
+                }
+                disabled={!selectedCourse}
+                className="flex-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-zinc-50 disabled:text-zinc-400"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || !selectedCourse || loading}
+                className="bg-indigo-600 text-white rounded-xl px-4 py-2.5 hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Send message"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
