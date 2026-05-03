@@ -33,6 +33,7 @@ export default function StudentPage() {
   const [courseOpen, setCourseOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function init() {
@@ -112,6 +113,7 @@ export default function StudentPage() {
       ]);
     } finally {
       setLoading(false);
+      inputRef.current?.focus();
     }
   }
 
@@ -245,6 +247,7 @@ export default function StudentPage() {
       <div className="border-t border-zinc-100 bg-white px-4 py-4">
         <div className="max-w-2xl mx-auto flex gap-3">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
