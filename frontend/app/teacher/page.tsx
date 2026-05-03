@@ -13,6 +13,7 @@ import {
   getFileIcon,
 } from "@/lib/materials";
 import type { CourseMaterial } from "@/lib/materials";
+import { clearSession } from "@/lib/users";
 
 const ALL_CLASSES = [
   { id: "1", name: "CSC 101 — Fundamentals of CS" },
@@ -145,6 +146,20 @@ export default function TeacherDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("open-hours-struggles");
+                  localStorage.removeItem("open-hours-materials");
+                  setSummaries([]);
+                  setMaterials([]);
+                  setSelectedClass(null);
+                }
+              }}
+              className="flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+            >
+              Clear Data
+            </button>
+            <button
               onClick={refresh}
               className="flex items-center gap-2 rounded-xl border border-[#d4d2cb] bg-white px-4 py-2 text-sm font-medium text-[#2d4a3e] transition-colors hover:bg-zinc-50"
             >
@@ -156,8 +171,11 @@ export default function TeacherDashboard() {
               </svg>
               Refresh
             </button>
-            <Link href="/classes" className="rounded-xl bg-[#2d4a3e] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#1e3a2e]">
+            <Link href="/classes?role=teacher" className="rounded-xl bg-[#2d4a3e] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#1e3a2e]">
               Student View
+            </Link>
+            <Link href="/login" onClick={() => clearSession()} className="rounded-xl border border-[#d4d2cb] bg-white px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-50">
+              Sign Out
             </Link>
           </div>
         </div>
@@ -202,7 +220,7 @@ export default function TeacherDashboard() {
           {/* Class detail */}
           <div className="lg:col-span-2">
             {selectedClass ? (
-              <div className="space-y-6">
+              <div key={selectedClass} className="space-y-6 animate-content-in">
                 <h2 className="text-lg font-bold text-[#2d4a3e]">{activeClassName}</h2>
 
                 {/* Course Materials Upload */}
@@ -393,10 +411,127 @@ export default function TeacherDashboard() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <p className="text-sm text-zinc-400">
-                  Select a class to manage materials and view the struggle report.
-                </p>
+              /* Overview summary of all classes — paragraph form */
+              <div key="overview" className="space-y-6 animate-content-in">
+                <h2 className="text-lg font-bold text-[#2d4a3e]">
+                  Student Struggle Summary
+                </h2>
+
+                <div className="rounded-2xl border border-[#d4d2cb] bg-white p-6">
+                  {summaries.length === 0 ? (
+                    <p className="text-sm leading-relaxed text-zinc-500">
+                      No student data has been recorded yet. Once students begin
+                      using Open Hours, a written summary of their struggles
+                      across all classes will appear here.
+                    </p>
+                  ) : (
+                    <div className="space-y-6 text-sm leading-relaxed text-zinc-700">
+                      {summaries.map((summary) => {
+                        const needsHelp = summary.students.filter(
+                          (s) => s.avgHintLevel >= 2.5
+                        );
+                        const workingThrough = summary.students.filter(
+                          (s) => s.avgHintLevel >= 1.5 && s.avgHintLevel < 2.5
+                        );
+                        const onTrack = summary.students.filter(
+                          (s) => s.avgHintLevel < 1.5
+                        );
+
+                        return (
+                          <div key={summary.classId}>
+                            <h3 className="mb-2 text-base font-bold text-[#2d4a3e]">
+                              {summary.className}
+                            </h3>
+
+                            <p>
+                              Across {summary.totalQuestions} question
+                              {summary.totalQuestions !== 1 ? "s" : ""} from{" "}
+                              {summary.students.length} student
+                              {summary.students.length !== 1 ? "s" : ""}
+                              {summary.topTopics.length > 0 && (
+                                <>
+                                  , the most common areas of difficulty are{" "}
+                                  {summary.topTopics.map((t, i) => (
+                                    <span key={t.topic}>
+                                      {i > 0 &&
+                                        i < summary.topTopics.length - 1 &&
+                                        ", "}
+                                      {i > 0 &&
+                                        i === summary.topTopics.length - 1 &&
+                                        " and "}
+                                      <span className="font-semibold text-[#2d4a3e]">
+                                        {t.topic}
+                                      </span>
+                                      {" "}({t.count})
+                                    </span>
+                                  ))}
+                                </>
+                              )}
+                              .
+                            </p>
+
+                            {needsHelp.length > 0 && (
+                              <p className="mt-2">
+                                <span className="font-semibold text-red-700">
+                                  {needsHelp.map((s) => s.name).join(", ")}
+                                </span>{" "}
+                                {needsHelp.length === 1 ? "is" : "are"}{" "}
+                                consistently needing level 3 hints, which
+                                suggests they may need direct intervention or
+                                additional office hours time on these topics.
+                              </p>
+                            )}
+
+                            {workingThrough.length > 0 && (
+                              <p className="mt-2">
+                                {workingThrough.map((s) => s.name).join(", ")}{" "}
+                                {workingThrough.length === 1 ? "is" : "are"}{" "}
+                                making progress but still requiring guided
+                                questions (level 2 hints) to work through
+                                problems.
+                              </p>
+                            )}
+
+                            {onTrack.length > 0 && (
+                              <p className="mt-2">
+                                {onTrack.map((s) => s.name).join(", ")}{" "}
+                                {onTrack.length === 1 ? "appears" : "appear"} to
+                                be on track, typically only needing a small
+                                conceptual nudge to move forward.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {ALL_CLASSES.filter(
+                        (cls) => !summaries.find((s) => s.classId === cls.id)
+                      ).length > 0 && (
+                        <div>
+                          <h3 className="mb-2 text-base font-bold text-zinc-400">
+                            No Activity Yet
+                          </h3>
+                          <p className="text-zinc-400">
+                            {ALL_CLASSES.filter(
+                              (cls) =>
+                                !summaries.find((s) => s.classId === cls.id)
+                            )
+                              .map((cls) => cls.name)
+                              .join(", ")}{" "}
+                            — no students have asked questions in{" "}
+                            {ALL_CLASSES.filter(
+                              (cls) =>
+                                !summaries.find((s) => s.classId === cls.id)
+                            ).length === 1
+                              ? "this class"
+                              : "these classes"}{" "}
+                            yet.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
