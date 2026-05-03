@@ -69,10 +69,14 @@ export default function StudentPage() {
       setUserName(profile?.full_name ?? "Student");
       setUserId(user.id);
 
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("id, name, description")
-        .order("created_at", { ascending: false });
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("course_id, courses(id, name, description)")
+        .eq("student_id", user.id);
+
+      const courseData = (enrollments ?? [])
+        .map((e: any) => e.courses)
+        .filter(Boolean) as Course[];
 
       setCourses(courseData ?? []);
       if (courseData && courseData.length > 0) {
