@@ -5,6 +5,7 @@
 - **React 19**
 - **TypeScript**
 - **Tailwind CSS 4**
+- **Framer Motion** (animations)
 - **Supabase JS Client** (`@supabase/supabase-js`, `@supabase/ssr`)
 - **lucide-react** (icons)
 

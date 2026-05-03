@@ -63,54 +63,53 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 max-w-5xl mx-auto w-full">
-        <h2 className="text-2xl font-semibold text-center text-zinc-800 mb-12">
-          Everything professors and students need
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <Brain className="w-5 h-5 text-indigo-500" />,
-              title: "Scoped AI answers",
-              desc: "The AI only answers from what you uploaded — no hallucinations, no off-topic shortcuts.",
-            },
-            {
-              icon: <Lightbulb className="w-5 h-5 text-amber-500" />,
-              title: "Tiered hints, not answers",
-              desc: "Students get concept reminders, leading questions, and partial breakdowns — never the full solution.",
-            },
-            {
-              icon: <BarChart3 className="w-5 h-5 text-emerald-500" />,
-              title: "Professor analytics",
-              desc: "See which topics students struggle with most so you can focus your time where it matters.",
-            },
-            {
-              icon: <Clock className="w-5 h-5 text-sky-500" />,
-              title: "24/7 availability",
-              desc: "Students get help at 2am. You don't have to be there. Office hours are for the hard stuff.",
-            },
-            {
-              icon: <Shield className="w-5 h-5 text-rose-500" />,
-              title: "Academic integrity",
-              desc: "Constrained to course content and designed to guide thinking, not replace it.",
-            },
-            {
-              icon: <BookOpen className="w-5 h-5 text-violet-500" />,
-              title: "Book real office hours",
-              desc: "When AI isn't enough, students can request a real session directly from the chat.",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="flex flex-col gap-3 p-6 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-colors"
-            >
-              <div className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center">
-                {f.icon}
+      <section className="dark-section py-20 px-6">
+        <div className="max-w-5xl mx-auto w-full">
+          <h2 className="text-2xl font-semibold text-center mb-12">
+            Everything professors and students need
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: <Brain className="w-5 h-5 text-indigo-400" />,
+                title: "Scoped AI answers",
+                desc: "The AI only answers from what you uploaded — no hallucinations, no off-topic shortcuts.",
+              },
+              {
+                icon: <Lightbulb className="w-5 h-5 text-amber-400" />,
+                title: "Tiered hints, not answers",
+                desc: "Students get concept reminders, leading questions, and partial breakdowns — never the full solution.",
+              },
+              {
+                icon: <BarChart3 className="w-5 h-5 text-emerald-400" />,
+                title: "Professor analytics",
+                desc: "See which topics students struggle with most so you can focus your time where it matters.",
+              },
+              {
+                icon: <Clock className="w-5 h-5 text-sky-400" />,
+                title: "24/7 availability",
+                desc: "Students get help at 2am. You don't have to be there. Office hours are for the hard stuff.",
+              },
+              {
+                icon: <Shield className="w-5 h-5 text-rose-400" />,
+                title: "Academic integrity",
+                desc: "Constrained to course content and designed to guide thinking, not replace it.",
+              },
+              {
+                icon: <BookOpen className="w-5 h-5 text-violet-400" />,
+                title: "Book real office hours",
+                desc: "When AI isn't enough, students can request a real session directly from the chat.",
+              },
+            ].map((f) => (
+              <div key={f.title} className="dark-card flex flex-col gap-3 p-6 rounded-2xl hover:border-zinc-700 transition-colors">
+                <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center">
+                  {f.icon}
+                </div>
+                <h3 className="font-semibold">{f.title}</h3>
+                <p className="text-sm leading-relaxed">{f.desc}</p>
               </div>
-              <h3 className="font-semibold text-zinc-800">{f.title}</h3>
-              <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
