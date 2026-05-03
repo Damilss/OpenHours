@@ -55,7 +55,6 @@ export default function StudentPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function init() {
@@ -103,9 +102,12 @@ export default function StudentPage() {
   // Close menu when clicking outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpenId(null);
-      }
+      setMenuOpenId((current) => {
+        if (!current) return null;
+        const menu = document.getElementById(`menu-${current}`);
+        if (menu && !menu.contains(e.target as Node)) return null;
+        return current;
+      });
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -330,7 +332,7 @@ export default function StudentPage() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2" ref={menuRef}>
+          <div className="flex-1 overflow-y-auto p-2">
             {sessions.length === 0 ? (
               <p className="text-xs text-zinc-400 text-center mt-6 px-4">
                 No past chats yet. Ask a question to get started.
@@ -537,14 +539,14 @@ function SessionItem({
           <div className="relative shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); onMenuToggle(session.id); }}
-              className={`p-1 rounded transition-colors ${isMenuOpen ? "text-zinc-600 bg-zinc-100" : "text-zinc-300 opacity-0 group-hover:opacity-100 hover:text-zinc-600 hover:bg-zinc-100"}`}
+              className={`p-1 rounded transition-colors ${isMenuOpen ? "text-zinc-600 bg-zinc-100" : "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"}`}
               aria-label="Chat options"
             >
               <MoreHorizontal className="w-3.5 h-3.5" />
             </button>
 
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 w-40 py-1">
+              <div id={`menu-${session.id}`} className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 w-40 py-1">
                 <button
                   onClick={() => onRenameStart(session)}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50"
