@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Schema Change Review",
+  "description": "When the Supabase schema file is edited, Kiro checks for missing indexes, RLS policy gaps, and consistency with the backend services",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "supabase/schema.sql"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The Supabase schema.sql file was just edited. Review the changes and check: 1) Are RLS policies defined for any new tables? 2) Are indexes added for foreign keys and frequently queried columns? 3) Does the match_documents() function signature still match what backend/services/rag.py expects? 4) Are there any breaking changes that would require updates to backend/main.py or the frontend? Flag any issues."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Frontend Build Check",
+  "description": "Runs next build after any frontend source file is saved to catch TypeScript and compile errors immediately",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/app/**/*.tsx",
+      "frontend/app/**/*.ts",
+      "frontend/lib/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd frontend && npm run build 2>&1 | tail -20",
+    "timeout": 60
+  }
+}

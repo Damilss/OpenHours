@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Backend Python Review",
+  "description": "After editing any backend Python file, Kiro reviews the change for bugs, missing error handling, and RAG pipeline correctness",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A backend Python service file was just edited. Review the change and check: 1) Are there any obvious bugs or missing error handling? 2) Does the RAG pipeline in rag.py still correctly build the search query and pass history? 3) Does the Supabase client usage look correct? Flag any issues concisely."
+  }
+}
