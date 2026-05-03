@@ -23,12 +23,12 @@ source venv/bin/activate
 uvicorn main:app --reload --port 8000   # start dev server
 ```
 
-Backend requires a `.env` file with `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+Backend requires a `.env` file with `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Optional: `FRONTEND_URL` (added to the CORS allowlist alongside `http://localhost:3000`).
 
 Frontend requires `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FASTAPI_URL` (defaults to `http://localhost:8000`).
 
 ### Database
-Run `backend/schema.sql` in the Supabase SQL Editor after enabling the `vector` extension (Dashboard → Database → Extensions).
+Run `supabase/schema.sql` in the Supabase SQL Editor after enabling the `vector` extension (Dashboard → Database → Extensions).
 
 ## Architecture
 
@@ -64,7 +64,7 @@ Browser → Next.js frontend (port 3000)
 
 | File | Responsibility |
 |---|---|
-| `parser.py` | Extract text from PDF (pypdf), PPTX (python-pptx), audio/video (OpenAI Whisper API) |
+| `parser.py` | Extract text from PDF (pypdf), PPTX (python-pptx), audio/video (local `openai-whisper` — optional; not in `requirements.txt`, raises a friendly error if unavailable) |
 | `embeddings.py` | Chunk text (500 tokens, 50 overlap) → embed via `text-embedding-3-small` → insert into `documents` table |
 | `rag.py` | Embed question → `match_documents` RPC → build prompt with top-6 chunks → call `gpt-4o-mini` → log to `question_logs` |
 | `analytics.py` | Aggregate `question_logs` → cluster into topics via GPT |
@@ -76,7 +76,10 @@ Browser → Next.js frontend (port 3000)
 | `profiles` | Extends `auth.users`; stores `role` (professor/student) |
 | `courses` | Owned by a professor; scopes all content and queries |
 | `documents` | Parsed text chunks + `vector(1536)` embeddings |
+| `chat_sessions` | Per-(student, course) conversation threads shown in the sidebar; supports `pinned` and `title` rename |
+| `chat_messages` | Individual user/assistant turns within a session (cascade-deleted with session) |
 | `question_logs` | Every student question logged for analytics |
+| `bookings` | **Unused.** Office hours request rows; the `POST /book` endpoint and table still exist but no UI surfaces them |
 
 Semantic search is performed via the `match_documents(query_embedding, match_course_id, match_count)` Postgres function using cosine distance (`<->`).
 
@@ -85,9 +88,10 @@ Semantic search is performed via the `match_documents(query_embedding, match_cou
 | Route | Role |
 |---|---|
 | `/` | Landing page |
-| `/auth/login`, `/auth/signup` | Auth (role selected at signup, stored in `raw_user_meta_data`) |
+| `/auth/login`, `/auth/signup` | Auth (role selected at signup via `?role=` query param, stored in `raw_user_meta_data`) |
 | `/auth/verify` | Email verification holding page |
-| `/student` | Chat UI |
-| `/professor` | Dashboard |
-| `/professor/upload` | File upload |
+| `/student` | Chat UI with sidebar of past sessions (uses `chat_sessions` + `chat_messages`) |
+| `/professor` | Dashboard (courses + stats) |
+| `/professor/upload` | File upload + course creation |
 | `/professor/analytics` | Topic analytics |
+| `/not-found` (catch-all) | Custom 404 page (`app/not-found.tsx`) |
