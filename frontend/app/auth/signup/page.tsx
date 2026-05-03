@@ -40,14 +40,8 @@ function SignupForm() {
     }
 
     if (data.user) {
-      // Insert profile row
-      await supabase.from("profiles").insert({
-        id: data.user.id,
-        role,
-        full_name: fullName,
-      });
-
-      router.push(role === "professor" ? "/professor" : "/student");
+      // Redirect to verify page - user needs to confirm email
+      router.push("/auth/verify");
     }
   }
 
