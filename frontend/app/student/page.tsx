@@ -80,7 +80,7 @@ export default function StudentPage() {
       setCourses(courseData ?? []);
       if (courseData && courseData.length > 0) {
         setSelectedCourse(courseData[0]);
-        await loadSessions(user.id, courseData[0].id);
+        await loadSessions(user.id, courseData[0].id, true);
       }
     }
     init();
@@ -96,7 +96,7 @@ export default function StudentPage() {
     }
   }, [loading]);
 
-  async function loadSessions(uid: string, courseId: string) {
+  async function loadSessions(uid: string, courseId: string, keepMessages = false) {
     const supabase = createClient();
     const { data } = await supabase
       .from("chat_sessions")
@@ -105,8 +105,10 @@ export default function StudentPage() {
       .eq("course_id", courseId)
       .order("updated_at", { ascending: false });
     setSessions(data ?? []);
-    setActiveSessionId(null);
-    setMessages([]);
+    if (!keepMessages) {
+      setActiveSessionId(null);
+      setMessages([]);
+    }
   }
 
   async function loadSession(sessionId: string) {
@@ -185,8 +187,8 @@ export default function StudentPage() {
           .update({ updated_at: new Date().toISOString() })
           .eq("id", sessionId);
 
-        // Refresh sidebar
-        await loadSessions(userId, selectedCourse.id);
+        // Refresh sidebar without clearing messages
+        await loadSessions(userId, selectedCourse.id, true);
         setActiveSessionId(sessionId);
       }
     } catch {
@@ -212,8 +214,10 @@ export default function StudentPage() {
   async function handleCourseSelect(course: Course) {
     setSelectedCourse(course);
     setCourseOpen(false);
+    setMessages([]);
+    setActiveSessionId(null);
     if (userId) {
-      await loadSessions(userId, course.id);
+      await loadSessions(userId, course.id, true);
     }
   }
 
