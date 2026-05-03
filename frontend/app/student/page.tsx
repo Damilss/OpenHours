@@ -45,6 +45,7 @@ export default function StudentPage() {
   const [joinCode, setJoinCode] = useState("");
   const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
+  const [confirmLeaveId, setConfirmLeaveId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -279,9 +280,31 @@ export default function StudentPage() {
   async function handleCourseSelect(course: Course) {
     setSelectedCourse(course);
     setCourseOpen(false);
+    setConfirmLeaveId(null);
     setMessages([]);
     setActiveSessionId(null);
     if (userId) await loadSessions(userId, course.id, true);
+  }
+
+  async function leaveCourse(courseId: string) {
+    if (!userId) return;
+    const supabase = createClient();
+    await supabase
+      .from("enrollments")
+      .delete()
+      .eq("student_id", userId)
+      .eq("course_id", courseId);
+    const remaining = courses.filter((c) => c.id !== courseId);
+    setCourses(remaining);
+    setConfirmLeaveId(null);
+    setCourseOpen(false);
+    if (selectedCourse?.id === courseId) {
+      setSelectedCourse(remaining[0] ?? null);
+      setMessages([]);
+      setActiveSessionId(null);
+      setSessions([]);
+      if (remaining[0] && userId) await loadSessions(userId, remaining[0].id, true);
+    }
   }
 
   function formatDate(iso: string) {
@@ -350,13 +373,38 @@ export default function StudentPage() {
           {courseOpen && (
             <div className="absolute top-full mt-1 left-0 bg-white border border-zinc-200 rounded-xl shadow-lg z-10 min-w-48">
               {courses.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => handleCourseSelect(c)}
-                  className="w-full text-left px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 first:rounded-t-xl"
-                >
-                  {c.name}
-                </button>
+                <div key={c.id} className="flex items-center group hover:bg-zinc-50 first:rounded-t-xl">
+                  <button
+                    onClick={() => handleCourseSelect(c)}
+                    className="flex-1 text-left px-4 py-2.5 text-sm text-zinc-700"
+                  >
+                    {c.name}
+                  </button>
+                  {confirmLeaveId === c.id ? (
+                    <div className="flex items-center gap-1.5 pr-3">
+                      <button
+                        onClick={() => leaveCourse(c.id)}
+                        className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded transition-colors"
+                      >
+                        Leave
+                      </button>
+                      <button
+                        onClick={() => setConfirmLeaveId(null)}
+                        className="text-xs text-zinc-400 hover:text-zinc-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setConfirmLeaveId(c.id); }}
+                      className="opacity-0 group-hover:opacity-100 pr-3 text-zinc-300 hover:text-red-500 transition-colors"
+                      aria-label="Leave course"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               ))}
               <div className="border-t border-zinc-100">
                 <button
