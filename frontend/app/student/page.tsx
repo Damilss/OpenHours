@@ -92,25 +92,18 @@ export default function StudentPage() {
     setJoinError("");
     const supabase = createClient();
 
-    const { data: course, error } = await supabase
-      .rpc("get_course_by_join_code", { code: joinCode.trim().toUpperCase() })
+    const { data: courseData, error } = await supabase
+      .from("courses")
+      .select("id, name, description")
+      .eq("join_code", joinCode.trim().toUpperCase())
       .single();
+
+    const course = courseData as Course | null;
 
     if (error || !course) {
       setJoinError("Invalid code. Please check and try again.");
       setJoining(false);
       return;
-    }
-
-    const { data: existing } = await supabase
-      .from("enrollments")
-      .select("id")
-      .eq("student_id", userId)
-      .eq("course_id", course.id)
-      .single();
-
-    if (!existing) {
-      await supabase.from("enrollments").insert({ student_id: userId, course_id: course.id });
     }
 
     setCourses((prev) => prev.find((c) => c.id === course.id) ? prev : [...prev, course]);
