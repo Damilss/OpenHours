@@ -11,11 +11,14 @@ OpenHours/
 │   │   ├── page.tsx             # Landing page
 │   │   ├── layout.tsx
 │   │   ├── globals.css
+│   │   ├── not-found.tsx        # Custom 404
+│   │   ├── icon.png             # Favicon
 │   │   ├── auth/
 │   │   │   ├── login/page.tsx
-│   │   │   └── signup/page.tsx
+│   │   │   ├── signup/page.tsx
+│   │   │   └── verify/page.tsx  # Email verification holding page
 │   │   ├── student/
-│   │   │   └── page.tsx         # Student chat UI
+│   │   │   └── page.tsx         # Student chat UI + chat session sidebar
 │   │   ├── professor/
 │   │   │   ├── page.tsx         # Professor dashboard
 │   │   │   ├── upload/page.tsx  # Upload course materials
@@ -25,23 +28,27 @@ OpenHours/
 │   │       ├── upload/route.ts
 │   │       └── analytics/route.ts
 │   ├── lib/
-│   │   ├── supabase.ts          # Supabase client
-│   │   └── utils.ts
+│   │   ├── supabase.ts          # Browser-only Supabase client
+│   │   └── utils.ts             # cn() className helper
+│   ├── public/                  # Logo assets
+│   ├── AGENTS.md                # Next.js 16 caveat for AI assistants
 │   └── package.json
 │
 ├── backend/                     # FastAPI (Python)
 │   ├── main.py                  # All API endpoints
 │   ├── services/
-│   │   ├── parser.py            # PDF/PPTX/video parsing
+│   │   ├── parser.py            # PDF/PPTX/audio parsing
 │   │   ├── embeddings.py        # OpenAI embeddings + chunking
-│   │   ├── rag.py               # LangChain RAG pipeline
-│   │   └── analytics.py         # Question clustering
+│   │   ├── rag.py               # RAG pipeline (retrieval + chat)
+│   │   └── analytics.py         # GPT-based question clustering
 │   └── requirements.txt
 │
 ├── supabase/
-│   └── schema.sql               # DB schema + pgvector setup
+│   └── schema.sql               # DB schema + pgvector setup + RLS
 │
 ├── .kiro/steering/              # Kiro AI steering documents
+├── DEPLOYMENT.md                # Vercel + Railway deploy guide
+├── CLAUDE.md                    # Guidance for AI coding assistants
 ├── README.md
 └── LICENSE
 ```
