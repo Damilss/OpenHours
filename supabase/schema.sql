@@ -103,7 +103,44 @@ $$;
 
 
 -- ============================================================
+-- Chat sessions (student conversation history)
+-- ============================================================
+
+create table if not exists chat_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid references profiles(id) on delete cascade not null,
+  course_id   uuid references courses(id) on delete cascade not null,
+  title       text not null,
+  pinned      boolean not null default false,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+
+create index if not exists chat_sessions_student_course_idx
+  on chat_sessions(student_id, course_id);
+create index if not exists chat_sessions_updated_at_idx
+  on chat_sessions(updated_at desc);
+
+
+-- ============================================================
+-- Chat messages (one row per turn within a session)
+-- ============================================================
+
+create table if not exists chat_messages (
+  id          uuid primary key default gen_random_uuid(),
+  session_id  uuid references chat_sessions(id) on delete cascade not null,
+  role        text not null check (role in ('user', 'assistant')),
+  content     text not null,
+  created_at  timestamptz default now()
+);
+
+create index if not exists chat_messages_session_id_idx
+  on chat_messages(session_id, created_at);
+
+
+-- ============================================================
 -- Office hours bookings
+-- (Unused — feature not exposed in current UI; kept for future use.)
 -- ============================================================
 
 create table if not exists bookings (
@@ -140,9 +177,11 @@ create index if not exists question_logs_created_at_idx on question_logs(created
 -- Row Level Security
 -- ============================================================
 
-alter table profiles      enable row level security;
+alter table profiles       enable row level security;
 alter table courses        enable row level security;
 alter table documents      enable row level security;
+alter table chat_sessions  enable row level security;
+alter table chat_messages  enable row level security;
 alter table bookings       enable row level security;
 alter table question_logs  enable row level security;
 
@@ -179,6 +218,20 @@ create policy "documents: students read" on documents
     exists (
       select 1 from profiles
       where id = auth.uid() and role = 'student'
+    )
+  );
+
+-- Chat sessions: students manage their own
+create policy "chat_sessions: student owns" on chat_sessions
+  for all using (auth.uid() = student_id);
+
+-- Chat messages: students manage messages within their own sessions
+create policy "chat_messages: student owns" on chat_messages
+  for all using (
+    exists (
+      select 1 from chat_sessions
+      where chat_sessions.id = chat_messages.session_id
+        and chat_sessions.student_id = auth.uid()
     )
   );
 
