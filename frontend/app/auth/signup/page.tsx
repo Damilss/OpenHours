@@ -49,7 +49,7 @@ function SignupForm() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={24} height={24} />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-lg">OpenHours</span>
         </div>
 

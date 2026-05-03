@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -134,7 +135,7 @@ export default function ProfessorDashboard() {
       {/* Header */}
       <header className="bg-white border-b border-zinc-100 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-indigo-600" />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-sm">OpenHours</span>
         </div>
         <div className="flex items-center gap-4">

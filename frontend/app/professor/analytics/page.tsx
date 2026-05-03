@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, ArrowLeft, BarChart3, TrendingUp } from "lucide-react";
+import { ArrowLeft, BarChart3, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 interface Course {
@@ -93,7 +94,7 @@ export default function AnalyticsPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-indigo-600" />
+          <Image src="/openhoursNOTEXT.png" alt="OpenHours" width={48} height={48} className="mt-2" />
           <span className="font-semibold text-sm">OpenHours</span>
         </div>
       </header>
