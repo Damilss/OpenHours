@@ -195,54 +195,97 @@ Backend runs at `http://localhost:8000`
 create extension if not exists vector;
 
 -- Profiles (extends Supabase auth.users)
-create table profiles (
-  id uuid references auth.users(id) primary key,
-  role text check (role in ('professor', 'student')),
-  full_name text,
-  created_at timestamp default now()
+create table if not exists profiles (
+  id          uuid references auth.users(id) on delete cascade primary key,
+  role        text not null check (role in ('professor', 'student')),
+  full_name   text,
+  created_at  timestamptz default now()
 );
+
+-- Auto-create a profile row when a new user signs up
+create or replace function handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, role, full_name)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'role', 'student'),
+    coalesce(new.raw_user_meta_data->>'full_name', '')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure handle_new_user();
 
 -- Courses
-create table courses (
-  id uuid primary key default gen_random_uuid(),
-  professor_id uuid references profiles(id),
-  name text not null,
-  description text,
-  created_at timestamp default now()
+create table if not exists courses (
+  id            uuid primary key default gen_random_uuid(),
+  professor_id  uuid references profiles(id) on delete cascade not null,
+  name          text not null,
+  description   text,
+  created_at    timestamptz default now()
 );
+
+create index if not exists courses_professor_id_idx on courses(professor_id);
 
 -- Documents (parsed chunks + embeddings)
-create table documents (
-  id uuid primary key default gen_random_uuid(),
-  course_id uuid references courses(id),
-  content text not null,
-  embedding vector(1536),
-  source_file text,
-  created_at timestamp default now()
+create table if not exists documents (
+  id           uuid primary key default gen_random_uuid(),
+  course_id    uuid references courses(id) on delete cascade not null,
+  content      text not null,
+  embedding    vector(1536),          -- OpenAI text-embedding-3-small dimensions
+  source_file  text,
+  created_at   timestamptz default now()
 );
 
+create index if not exists documents_course_id_idx on documents(course_id);
+
 -- Office hours bookings
-create table bookings (
-  id uuid primary key default gen_random_uuid(),
-  student_id uuid references profiles(id),
-  course_id uuid references courses(id),
-  message text,
-  status text default 'pending',
-  created_at timestamp default now()
+create table if not exists bookings (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid references profiles(id) on delete cascade not null,
+  course_id   uuid references courses(id) on delete cascade not null,
+  message     text,
+  status      text not null default 'pending'
+              check (status in ('pending', 'confirmed', 'declined')),
+  created_at  timestamptz default now()
 );
+
+create index if not exists bookings_course_id_idx  on bookings(course_id);
+create index if not exists bookings_student_id_idx on bookings(student_id);
+create index if not exists bookings_status_idx     on bookings(status);
+
+-- Question logs (for analytics)
+create table if not exists question_logs (
+  id          uuid primary key default gen_random_uuid(),
+  course_id   uuid references courses(id) on delete cascade not null,
+  question    text not null,
+  created_at  timestamptz default now()
+);
+
+create index if not exists question_logs_course_id_idx on question_logs(course_id);
+create index if not exists question_logs_created_at_idx on question_logs(created_at desc);
 
 -- Semantic search function
 create or replace function match_documents(
-  query_embedding vector(1536),
-  match_course_id uuid,
-  match_count int default 5
+  query_embedding  vector(1536),
+  match_course_id  uuid,
+  match_count      int default 6
 )
-returns table(content text, similarity float)
+returns table (content text, similarity float)
 language sql stable
 as $$
-  select content, 1 - (embedding <-> query_embedding) as similarity
+  select
+    content,
+    1 - (embedding <-> query_embedding) as similarity
   from documents
   where course_id = match_course_id
+    and embedding is not null
   order by embedding <-> query_embedding
   limit match_count;
 $$;
