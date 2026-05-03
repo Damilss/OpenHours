@@ -96,9 +96,13 @@ function detectStudentState(message: string, history: Message[]): "new_question"
 function buildResponse(message: string, hintLevel: number, topic: string, classId: string, history: Message[]): string {
   const state = detectStudentState(message, history);
   const topicLabel = topic === "General" ? "this problem" : topic;
+  const hasContext = history.length > 1; // has there been a real back-and-forth yet?
   let base = "";
 
-  if (state === "frustrated" || state === "confused") {
+  if (!hasContext && (state === "frustrated" || state === "confused" || state === "vague")) {
+    // First message and no actual problem described yet
+    base = `I'm here to help! To get started, tell me:\n\n• What class or topic is this for?\n• What's the specific problem or concept you're working on?\n• What have you tried so far?\n\nThe more detail you share, the better I can guide you.`;
+  } else if (state === "frustrated" || state === "confused") {
     // Don't pretend they're making progress — acknowledge the struggle
     if (hintLevel <= 1) {
       base = `That's okay — ${topicLabel} can be tricky, and it's completely normal to feel stuck here. Let's slow down and take a different angle.\n\nForget the full problem for a moment. Can you tell me what part specifically feels confusing? Is it the concept itself, or how to apply it? Narrowing down where you're stuck will help me guide you better.`;
@@ -119,7 +123,11 @@ function buildResponse(message: string, hintLevel: number, topic: string, classI
     }
   } else {
     // New question
-    base = `It looks like you're working on ${topicLabel}. Let's work through this together.\n\nBefore I guide you, tell me: what have you tried so far, and where did you get stuck? Understanding your starting point helps me give you the right nudge instead of repeating what you already know.`;
+    if (topic === "General") {
+      base = `Welcome! I'm your AI tutor for this class. Tell me what you're working on — a homework problem, a concept from lecture, or something you're studying for — and I'll help guide you through it.\n\nWhat's on your mind?`;
+    } else {
+      base = `It looks like you're working on ${topicLabel}. Let's work through this together.\n\nBefore I guide you, tell me: what have you tried so far, and where did you get stuck? Understanding your starting point helps me give you the right nudge instead of repeating what you already know.`;
+    }
   }
 
   // Check for professor-uploaded materials
