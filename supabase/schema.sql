@@ -24,7 +24,7 @@ create table if not exists profiles (
 
 -- Auto-create a profile row when a new user signs up
 create or replace function handle_new_user()
-returns trigger language plpgsql security definer as $$
+returns trigger language plpgsql security definer as $
 begin
   insert into public.profiles (id, role, full_name)
   values (
@@ -35,7 +35,7 @@ begin
   on conflict (id) do nothing;
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
@@ -52,10 +52,28 @@ create table if not exists courses (
   professor_id  uuid references profiles(id) on delete cascade not null,
   name          text not null,
   description   text,
+  join_code     text unique not null default upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 6)),
   created_at    timestamptz default now()
 );
 
 create index if not exists courses_professor_id_idx on courses(professor_id);
+create index if not exists courses_join_code_idx    on courses(join_code);
+
+
+-- ============================================================
+-- Enrollments (student ↔ course membership via join code)
+-- ============================================================
+
+create table if not exists enrollments (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid references profiles(id) on delete cascade not null,
+  course_id   uuid references courses(id) on delete cascade not null,
+  created_at  timestamptz default now(),
+  unique(student_id, course_id)
+);
+
+create index if not exists enrollments_student_id_idx on enrollments(student_id);
+create index if not exists enrollments_course_id_idx  on enrollments(course_id);
 
 
 -- ============================================================
@@ -90,7 +108,7 @@ create or replace function match_documents(
 )
 returns table (content text, similarity float)
 language sql stable
-as $$
+as $
   select
     content,
     1 - (embedding <-> query_embedding) as similarity
@@ -99,7 +117,7 @@ as $$
     and embedding is not null
   order by embedding <-> query_embedding
   limit match_count;
-$$;
+$;
 
 
 -- ============================================================
@@ -179,21 +197,29 @@ create index if not exists question_logs_created_at_idx on question_logs(created
 
 alter table profiles       enable row level security;
 alter table courses        enable row level security;
+alter table enrollments    enable row level security;
 alter table documents      enable row level security;
 alter table chat_sessions  enable row level security;
 alter table chat_messages  enable row level security;
 alter table bookings       enable row level security;
 alter table question_logs  enable row level security;
 
+-- ------------------------------------------------------------
 -- Profiles: users can read/update their own row
+-- ------------------------------------------------------------
 create policy "profiles: own row" on profiles
   for all using (auth.uid() = id);
 
--- Courses: professors manage their own; students can read all
+-- ------------------------------------------------------------
+-- Courses
+-- Professors manage their own courses.
+-- Students can read courses (needed for join code lookup and
+-- enrolled course display). Uses profiles check to avoid
+-- recursive policy evaluation.
+-- ------------------------------------------------------------
 create policy "courses: professor owns" on courses
-  for all using (
-    auth.uid() = professor_id
-  );
+  for all using (auth.uid() = professor_id)
+  with check (auth.uid() = professor_id);
 
 create policy "courses: students read" on courses
   for select using (
@@ -203,7 +229,30 @@ create policy "courses: students read" on courses
     )
   );
 
--- Documents: professors manage their course docs; students read
+-- ------------------------------------------------------------
+-- Enrollments
+-- Students manage their own enrollments (join / leave).
+-- Professors can read enrollments for their courses.
+-- ------------------------------------------------------------
+create policy "enrollments: student owns" on enrollments
+  for all using (auth.uid() = student_id)
+  with check (auth.uid() = student_id);
+
+create policy "enrollments: professor reads" on enrollments
+  for select using (
+    exists (
+      select 1 from courses
+      where courses.id = enrollments.course_id
+        and courses.professor_id = auth.uid()
+    )
+  );
+
+-- ------------------------------------------------------------
+-- Documents
+-- Professors manage docs for their courses.
+-- Students can read all documents (RAG queries go through the
+-- backend service role, but direct reads are also allowed).
+-- ------------------------------------------------------------
 create policy "documents: professor owns" on documents
   for all using (
     exists (
@@ -221,11 +270,18 @@ create policy "documents: students read" on documents
     )
   );
 
--- Chat sessions: students manage their own
+-- ------------------------------------------------------------
+-- Chat sessions
+-- Students fully manage their own sessions.
+-- ------------------------------------------------------------
 create policy "chat_sessions: student owns" on chat_sessions
-  for all using (auth.uid() = student_id);
+  for all using (auth.uid() = student_id)
+  with check (auth.uid() = student_id);
 
--- Chat messages: students manage messages within their own sessions
+-- ------------------------------------------------------------
+-- Chat messages
+-- Students manage messages within their own sessions.
+-- ------------------------------------------------------------
 create policy "chat_messages: student owns" on chat_messages
   for all using (
     exists (
@@ -235,7 +291,9 @@ create policy "chat_messages: student owns" on chat_messages
     )
   );
 
--- Bookings: students manage their own; professors read bookings for their courses
+-- ------------------------------------------------------------
+-- Bookings (unused in current UI, kept for future use)
+-- ------------------------------------------------------------
 create policy "bookings: student owns" on bookings
   for all using (auth.uid() = student_id);
 
@@ -257,7 +315,11 @@ create policy "bookings: professor updates" on bookings
     )
   );
 
--- Question logs: backend service role writes; professors read their course logs
+-- ------------------------------------------------------------
+-- Question logs
+-- Backend writes via service role (bypasses RLS).
+-- Professors can read logs for their courses.
+-- ------------------------------------------------------------
 create policy "question_logs: professor reads" on question_logs
   for select using (
     exists (
