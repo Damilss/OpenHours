@@ -1,4 +1,4 @@
-# OpenHours 🎓
+# OpenHours 🎓 
 [Devpost page](https://devpost.com/software/openhours?ref_content=my-projects-tab&ref_feature=my_projects)
 > AI-powered office hours — scoped to your course, built to guide not replace.
 
