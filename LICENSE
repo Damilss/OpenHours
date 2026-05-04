@@ -1,21 +1,81 @@
-MIT License
+OpenHours Proprietary Source License
 
-Copyright (c) 2026 Emilio Ledesma
+Copyright (c) 2026 Emilio Ledesma and OpenHours contributors.
+All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license governs the source code, documentation, assets, configuration,
+and other materials in this repository (collectively, the "Software").
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The Software is proprietary and is not open source. Except for the limited
+permission expressly granted below, no rights are granted by implication,
+estoppel, or otherwise.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+1. Limited Permission
+
+You may access, view, and evaluate the Software solely for personal,
+educational, security review, or internal evaluation purposes.
+
+2. Restrictions
+
+Unless OpenHours gives you prior written permission, you may not:
+
+- Copy, reproduce, or redistribute the Software.
+- Modify, adapt, translate, or create derivative works of the Software.
+- Publish, sublicense, sell, rent, lease, host, or commercially exploit the
+  Software.
+- Deploy, operate, or make the Software available as a hosted service.
+- Use the Software to develop or operate a competing product or service.
+- Remove, alter, or obscure copyright, license, or proprietary notices.
+- Reverse engineer, decompile, or disassemble any compiled portion of the
+  Software, except to the extent applicable law prohibits this restriction.
+
+3. Contributions
+
+Unless otherwise agreed in writing, any contribution, suggestion, issue,
+pull request, patch, comment, or other submission you provide to OpenHours
+may be used, modified, distributed, sublicensed, and otherwise exploited by
+OpenHours without restriction or compensation to you.
+
+You represent that you have the right to provide any such contribution and
+that it does not violate any law or third-party right.
+
+4. Third-Party Materials
+
+The Software may include or depend on third-party software, libraries,
+services, or materials. Those third-party materials are governed by their
+own license terms. This license does not modify or override any third-party
+license.
+
+5. Reservation of Rights
+
+OpenHours and its licensors retain all rights, title, and interest in and to
+the Software, including all intellectual property rights. Any use not
+expressly permitted by this license is prohibited.
+
+6. Termination
+
+Your permission under this license automatically terminates if you violate
+any of its terms. Upon termination, you must stop using the Software and
+delete any copies in your possession or control.
+
+7. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY
+KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NON-INFRINGEMENT.
+
+8. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, OPENHOURS, ITS CONTRIBUTORS, AND ITS
+LICENSORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS,
+REVENUE, DATA, GOODWILL, OR USE, ARISING OUT OF OR RELATED TO THE SOFTWARE OR
+THIS LICENSE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+9. Contact
+
+To request permission to use the Software beyond this license, contact:
+
+OpenHours Legal
+sampleemail@openhours.me
