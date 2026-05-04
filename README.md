@@ -195,6 +195,7 @@ Backend runs at `http://localhost:8000`
 ## Database Schema
 
 > Canonical source: [`supabase/schema.sql`](./supabase/schema.sql). The snippet below is the core data model for quick reference.
+> This snippet omits some production details such as RLS policies, secondary indexes, and the unused `bookings` table; use `supabase/schema.sql` for the full schema.
 
 ```sql
 -- Enable pgvector extension
