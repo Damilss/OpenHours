@@ -1,81 +1,491 @@
 OpenHours Proprietary Source License
 
-Copyright (c) 2026 Emilio Ledesma and OpenHours contributors.
-All rights reserved.
+Version 1.0 — Last updated: May 9, 2026
 
-This license governs the source code, documentation, assets, configuration,
-and other materials in this repository (collectively, the "Software").
+Copyright (c) 2026 Emilio Scott, Colin Mcdonald, and Elias Santillan
+(collectively, the "Maintainers"). All rights reserved.
 
-The Software is proprietary and is not open source. Except for the limited
-permission expressly granted below, no rights are granted by implication,
-estoppel, or otherwise.
+This license governs the source code, documentation, build configuration,
+database schemas, prompt templates, derived embeddings, design assets, brand
+materials, and other materials in this repository, together with any
+unreleased successor versions distributed by the Maintainers (collectively,
+the "Software").
 
-1. Limited Permission
+The Software is proprietary and is not open source. Public visibility of
+this repository, if any, is for transparency, evaluation, and security
+review only and does not waive, transfer, or imply a license of any kind.
+Except for the limited permission expressly granted in Section 4, no rights
+are granted to any other person or entity by implication, estoppel, course
+of dealing, or otherwise.
 
-You may access, view, and evaluate the Software solely for personal,
-educational, security review, or internal evaluation purposes.
+================================================================================
+1. Definitions
+================================================================================
 
-2. Restrictions
+"OpenHours" means the unincorporated joint project owned by the Maintainers
+named above, together with any successor entity to which the Maintainers
+unanimously assign the Software in accordance with this license.
 
-Unless OpenHours gives you prior written permission, you may not:
+"Maintainer" means each of Emilio Scott, Colin Mcdonald, and Elias
+Santillan, or, after a Permitted Transfer under Section 3.3, the person or
+entity holding that Maintainer's ownership share subject to this license.
 
-- Copy, reproduce, or redistribute the Software.
-- Modify, adapt, translate, or create derivative works of the Software.
-- Publish, sublicense, sell, rent, lease, host, or commercially exploit the
-  Software.
-- Deploy, operate, or make the Software available as a hosted service.
-- Use the Software to develop or operate a competing product or service.
-- Remove, alter, or obscure copyright, license, or proprietary notices.
-- Reverse engineer, decompile, or disassemble any compiled portion of the
-  Software, except to the extent applicable law prohibits this restriction.
+"You" or "Your" means the individual or entity exercising any rights or
+performing any acts under this license. If You are acting on behalf of an
+organization, "You" includes that organization.
 
-3. Contributions
+"Service" means any deployed instance, hosted version, integration, fork,
+mirror, or production build of the Software, including the production
+deployment at openhours.me and any successor domain.
 
-Unless otherwise agreed in writing, any contribution, suggestion, issue,
-pull request, patch, comment, or other submission you provide to OpenHours
-may be used, modified, distributed, sublicensed, and otherwise exploited by
-OpenHours without restriction or compensation to you.
+"Major Decision" has the meaning given in Section 2.3.
 
-You represent that you have the right to provide any such contribution and
-that it does not violate any law or third-party right.
+"Permitted Transfer" has the meaning given in Section 3.3.
 
-4. Third-Party Materials
+================================================================================
+2. Joint Ownership and Governance
+================================================================================
 
-The Software may include or depend on third-party software, libraries,
-services, or materials. Those third-party materials are governed by their
-own license terms. This license does not modify or override any third-party
-license.
+2.1 Equal, Undivided Joint Ownership.
+The Software, and all copyrights, trade secrets, trademark rights in the
+OpenHours name and logo, patent rights (if any), database rights, moral
+rights to the extent waivable, and all other intellectual property rights
+in or to the Software, are owned jointly and in equal undivided shares of
+one-third (1/3) each by the three Maintainers. No Maintainer holds a
+controlling interest. The Maintainers' relationship under this license is
+that of joint owners of intellectual property; nothing in this license
+creates a partnership, employer-employee relationship, agency, fiduciary
+duty (beyond those imposed by law on co-owners of intellectual property),
+or joint venture except as expressly stated.
 
-5. Reservation of Rights
+2.2 Routine Operations.
+Each Maintainer, acting alone, may perform routine technical and
+operational work that is not a Major Decision, including writing and
+merging code, creating branches, deploying to development or staging
+environments, fixing bugs, rotating credentials, updating dependencies,
+responding to security advisories, triaging incidents, and answering
+ordinary user support requests. Each Maintainer is expected to communicate
+material routine actions to the others in good faith and to keep
+operational records reasonably accessible to the other Maintainers.
 
-OpenHours and its licensors retain all rights, title, and interest in and to
+2.3 Major Decisions Require Unanimous Consent.
+The Maintainers must reach unanimous, documented agreement before taking,
+authorizing, or representing to a third party any of the following actions,
+each a "Major Decision":
+
+  (a) Granting any license, sublicense, distribution right, or commercial-
+      use right in the Software or any material portion of it to any third
+      party.
+  (b) Selling, assigning, transferring, encumbering, pledging, or granting
+      a security interest in all or any part of the Software, the OpenHours
+      name, or any associated intellectual property.
+  (c) Changing this license, the OpenHours Terms of Service, the OpenHours
+      Privacy Policy, or any other binding policy that governs the Service
+      or its users.
+  (d) Releasing the Software, in whole or in part, under an open-source,
+      source-available, or other public license.
+  (e) Forming, joining, merging, dissolving, or restructuring any company,
+      LLC, partnership, nonprofit, or other legal entity that holds or
+      operates the Software.
+  (f) Accepting investment, debt, grant funding, or other financing on
+      behalf of OpenHours that creates an obligation against the Software
+      or against the Maintainers collectively.
+  (g) Distributing revenue, equity, profits, or other proceeds derived from
+      the Software, or setting compensation for any Maintainer.
+  (h) Removing a Maintainer for cause under Section 3.4.
+  (i) Adding a new Maintainer or otherwise diluting any Maintainer's
+      one-third ownership share.
+  (j) Discontinuing, sunsetting, or shutting down the production Service,
+      or transferring it to a different operator.
+  (k) Initiating or settling any litigation, arbitration, or formal legal
+      proceeding in the name of OpenHours or that materially affects
+      OpenHours.
+  (l) Entering into any contract on behalf of OpenHours that imposes
+      obligations longer than ninety (90) days, that limits the
+      Maintainers' rights under this license, or that creates financial
+      exposure exceeding one thousand U.S. dollars ($1,000).
+  (m) Changing the OpenHours name, primary domain, branding, or production
+      deployment platform in a manner visible to users.
+  (n) Approving press, marketing, fundraising, regulatory, or pitch-deck
+      claims that purport to describe OpenHours's policies, security
+      posture, compliance status, financial condition, or user metrics.
+  (o) Engaging an external auditor, certifying body, penetration-testing
+      firm, or law firm in the name of OpenHours.
+  (p) Disclosing any portion of the Software's source code, internal
+      analytics, security details, or unreleased product plans outside the
+      Maintainer group, except as expressly permitted by this license, the
+      Privacy Policy, or applicable law.
+
+A Major Decision is "documented" when the Maintainers' agreement is
+recorded in a written record that (i) names the decision, (ii) names each
+consenting Maintainer, (iii) is dated, and (iv) is preserved in a place the
+Maintainers reasonably agree to (including, by default, this repository's
+commit history, a shared decision log, or signed email).
+
+2.4 No Unilateral Action on Major Decisions.
+A purported act, agreement, license, transfer, statement, or representation
+by fewer than all three Maintainers that constitutes or would effect a
+Major Decision is void, not binding on OpenHours, and not binding on the
+non-consenting Maintainers. A third party that knew or reasonably should
+have known of the unanimity requirement may not rely on a Major Decision
+purportedly made without unanimous Maintainer consent.
+
+2.5 Deadlock Resolution.
+If the Maintainers cannot agree on a proposed Major Decision after good-
+faith discussion for at least thirty (30) days, the proposed Major
+Decision is rejected and the status quo prevails. Any Maintainer may, at
+any time, request non-binding mediation by a mutually selected neutral
+third party; the Maintainers will share the mediator's reasonable cost
+equally. Repeated rejection of a proposed Major Decision is not, by itself,
+grounds for removal under Section 3.4.
+
+2.6 Confidentiality of Internal Decisions.
+The Maintainers will treat each other's internal discussions about Major
+Decisions, security incidents, financial information, prospective hires or
+contractors, unreleased product plans, and user-specific data as
+confidential. No Maintainer will disclose such information outside the
+Maintainer group without unanimous consent, except (a) as required by law
+or valid legal process, (b) to professional advisors (such as legal counsel
+or accountants) who are bound by confidentiality, or (c) as necessary to
+operate the Service consistent with the Privacy Policy.
+
+2.7 Books, Records, and Access.
+Each Maintainer is entitled to reasonable access to the operational records
+of OpenHours, including source code, deployment configuration, hosting
+dashboards, sub-processor accounts, and financial records (if any). No
+Maintainer may unilaterally lock another Maintainer out of any system that
+is necessary to participate in governance under this Section 2.
+
+================================================================================
+3. Maintainer Changes
+================================================================================
+
+3.1 Voluntary Departure.
+A Maintainer may withdraw from active day-to-day participation in OpenHours
+at any time by giving written notice to the other Maintainers. Withdrawal
+does not, by itself, transfer the withdrawing Maintainer's ownership share
+or release them from obligations that survive under this license.
+
+3.2 Effect of Departure.
+A Maintainer who has withdrawn under Section 3.1:
+
+  (a) ceases to be eligible to perform Routine Operations under
+      Section 2.2;
+  (b) remains required to consent to Major Decisions under Section 2.3
+      until a Permitted Transfer of their share is completed under
+      Section 3.3, except that consent may not be unreasonably withheld for
+      Major Decisions necessary to preserve the Service, comply with law,
+      or respond to a security incident;
+  (c) remains bound by the confidentiality obligations in Section 2.6 with
+      respect to information learned during their tenure for a period of
+      five (5) years after withdrawal; and
+  (d) loses access to production credentials, deployment dashboards, sub-
+      processor accounts, and similar operational privileges, which the
+      remaining Maintainers may revoke immediately on or after the
+      effective date of withdrawal.
+
+3.3 Permitted Transfer.
+A Maintainer may transfer or assign their ownership share only with the
+unanimous, documented written consent of the other Maintainers. As a
+condition of the transfer, the incoming holder must sign a written
+agreement (i) adopting this license without modification, (ii) accepting
+the obligations of a Maintainer, and (iii) consenting to be bound by the
+governance provisions of Section 2 and the Confidentiality obligations of
+Section 2.6. An attempted transfer that does not meet these conditions is
+void.
+
+3.4 Removal For Cause.
+A Maintainer may be removed from this license, and their decision rights
+under Section 2 suspended, only by the unanimous, documented consent of
+the other Maintainers and only on the basis of one or more of the
+following:
+
+  (a) Material breach of this license that remains uncured after thirty
+      (30) days' written notice describing the breach;
+  (b) Fraud, willful misconduct, embezzlement, or felony conviction
+      related to OpenHours or its users;
+  (c) Sustained inability or unwillingness to participate in the project
+      for at least one hundred eighty (180) consecutive days following
+      written notice; or
+  (d) A material breach of confidentiality under Section 2.6 that causes,
+      or is reasonably likely to cause, harm to OpenHours or its users.
+
+Removal does not, by itself, divest the removed Maintainer of their
+ownership share. Disposition of that share is subject to Section 3.3 or to
+a separate written settlement agreed unanimously among the original
+Maintainers.
+
+3.5 Death or Incapacity.
+On the death or legal incapacity of a Maintainer, the remaining Maintainers
+will negotiate in good faith with the deceased or incapacitated
+Maintainer's estate, executor, or legal representative to address the
+disposition of that Maintainer's share. Pending resolution, the remaining
+Maintainers may continue Routine Operations and may take Major Decisions
+that are reasonably necessary to preserve the Service, protect users, or
+comply with law, but may not take Major Decisions that materially prejudice
+the absent Maintainer's economic interest.
+
+3.6 Limit on Maintainer Count.
+Without unanimous, documented consent under Section 2.3(i), the number of
+Maintainers will not exceed three at any time.
+
+================================================================================
+4. Limited Permission to View and Evaluate
+================================================================================
+
+Subject to Section 5, You may access, view, read, and evaluate the
+Software, in this repository only, solely for the following purposes:
+
+  (a) personal, non-commercial study;
+  (b) academic discussion or coursework that does not produce a derivative
+      work;
+  (c) good-faith security review and reporting under Section 11; and
+  (d) internal evaluation of whether to seek a separate written license
+      from the Maintainers.
+
+This Section 4 grants no right to download, copy, modify, host, deploy,
+operate, distribute, or use the Software in production, and no right to
+extract or reuse any portion of the Software in another project.
+
+================================================================================
+5. Restrictions
+================================================================================
+
+Unless OpenHours, acting through the unanimous consent of the Maintainers,
+gives You prior written permission, You may not:
+
+  (a) Copy, reproduce, mirror, fork, archive, or redistribute the Software
+      or any part of it;
+  (b) Modify, adapt, translate, port, refactor, or create derivative works
+      of the Software;
+  (c) Publish, sublicense, sell, rent, lease, host, or commercially exploit
+      the Software;
+  (d) Deploy, operate, or make the Software available as a hosted service,
+      whether for free, for a fee, or for any other consideration;
+  (e) Use the Software, in whole or in part, to develop, train, fine-tune,
+      benchmark, evaluate, or operate any competing product, dataset, large
+      language model, embedding model, or other machine-learning system;
+  (f) Use the Software to produce content, prompts, or weights that are
+      then redistributed in a manner that would have been a Restriction had
+      they been part of the Software directly;
+  (g) Use the Software in any manner that violates the OpenHours Terms of
+      Service or Privacy Policy;
+  (h) Remove, alter, obscure, or fail to preserve copyright, license,
+      attribution, or proprietary notices, including the names of the
+      Maintainers;
+  (i) Reverse engineer, decompile, disassemble, or otherwise attempt to
+      derive the source code of any compiled portion of the Software,
+      except to the extent applicable law expressly prohibits this
+      restriction and only to the minimum extent so required;
+  (j) Use any OpenHours trademark, service mark, logo, trade dress, or
+      domain name except with the prior written consent of OpenHours, or
+      as permitted by Section 8;
+  (k) Misrepresent that You, or any product or service offered by You, are
+      affiliated with, sponsored by, endorsed by, or authorized by
+      OpenHours or any Maintainer;
+  (l) Circumvent or attempt to circumvent any technical, contractual, or
+      access control imposed on the Software or the Service.
+
+================================================================================
+6. Contributions
+================================================================================
+
+Unless otherwise agreed in writing by all three Maintainers, any
+contribution, suggestion, issue, pull request, patch, comment, design, or
+other submission You provide to OpenHours (each a "Contribution"):
+
+  (a) is provided under the terms of this license;
+  (b) is licensed by You to the Maintainers, jointly, on a perpetual,
+      irrevocable, worldwide, royalty-free, sublicensable, transferable
+      basis to use, reproduce, modify, distribute, sublicense, sell, and
+      otherwise exploit the Contribution, alone or in combination with the
+      Software, to the maximum extent permitted by law;
+  (c) is represented and warranted by You to be (i) Yours to give, (ii)
+      free of any third-party claim, encumbrance, or license obligation
+      that would conflict with this Section 6, and (iii) compliant with
+      applicable law;
+  (d) is provided "as is" without warranty of any kind; and
+  (e) does not entitle You to compensation, attribution beyond ordinary
+      version-control history, or any other consideration.
+
+The Maintainers are under no obligation to accept, review, respond to, or
+incorporate any Contribution, and may reject any Contribution at their
+sole, unanimous discretion.
+
+================================================================================
+7. Third-Party Materials
+================================================================================
+
+The Software incorporates, depends on, or interoperates with third-party
+software, libraries, services, fonts, icons, hosted infrastructure, and
+APIs, including (without limitation) Next.js, React, Tailwind CSS,
+framer-motion, lucide-react, FastAPI, Supabase (Postgres, Storage, Auth,
+pgvector), the OpenAI API (including the text-embedding-3-small and
+gpt-4o-mini models), pypdf, python-pptx, openai-whisper (where used),
+LangChain (used solely for text chunking), Vercel, and Railway. Those
+third-party materials are governed by their own license terms and obtained
+from their own sources. Nothing in this license modifies, overrides, or
+replaces any third-party license. You are responsible for complying with
+the terms of all third-party licenses applicable to Your use of the
+Software.
+
+================================================================================
+8. Trademarks
+================================================================================
+
+"OpenHours," the OpenHours logo, the openhours.me wordmark, and any related
+service marks are trademarks of the Maintainers, jointly. This license
+does not grant any trademark rights. You may make accurate, good-faith
+nominative references to OpenHours (for example, in academic discussion,
+news reporting, or independent security research) provided You do not
+imply sponsorship, endorsement, partnership, or affiliation, and provided
+You do not use OpenHours marks in a manner that is misleading or that
+disparages the Maintainers.
+
+================================================================================
+9. Reservation of Rights
+================================================================================
+
+The Maintainers, jointly, retain all right, title, and interest in and to
 the Software, including all intellectual property rights. Any use not
-expressly permitted by this license is prohibited.
+expressly permitted by this license is prohibited. No license is granted
+by implication, estoppel, course of dealing, course of performance, or
+otherwise.
 
-6. Termination
+================================================================================
+10. Termination
+================================================================================
 
-Your permission under this license automatically terminates if you violate
-any of its terms. Upon termination, you must stop using the Software and
-delete any copies in your possession or control.
+Your permission under Section 4 automatically terminates if You violate
+any provision of this license. The Maintainers, acting unanimously, may
+also terminate Your permission at any time, with or without cause, on
+written notice. Upon termination, You must (a) immediately stop accessing
+and using the Software, (b) delete or destroy any copies of the Software in
+Your possession or control, and (c) on request, certify in writing that
+You have done so, except in each case as You are required to retain by
+law.
 
-7. No Warranty
+Sections 1, 2, 3 (with respect to obligations that have accrued), 5, 6
+(with respect to Contributions already submitted), 7, 8, 9, 11, 12, 13,
+14, 15, and this Section 10 survive termination.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY
-KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
-NON-INFRINGEMENT.
+================================================================================
+11. Security Disclosure
+================================================================================
 
-8. Limitation of Liability
+If You discover a security vulnerability in the Software or the Service,
+please report it privately to security@openhours.me before any public
+disclosure. The Maintainers will acknowledge a good-faith report within a
+reasonable time and will not pursue legal action under this license against
+a researcher who:
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, OPENHOURS, ITS CONTRIBUTORS, AND ITS
-LICENSORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
-CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS,
-REVENUE, DATA, GOODWILL, OR USE, ARISING OUT OF OR RELATED TO THE SOFTWARE OR
-THIS LICENSE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+  (a) reports a vulnerability privately and in good faith;
+  (b) does not access user data beyond what is strictly necessary to
+      demonstrate the vulnerability;
+  (c) does not modify, destroy, exfiltrate, or retain user data;
+  (d) does not degrade or disrupt the Service; and
+  (e) gives the Maintainers a reasonable opportunity to remediate before
+      any public disclosure.
 
-9. Contact
+This Section 11 is not a bug-bounty program and does not commit the
+Maintainers to compensate any researcher.
 
-To request permission to use the Software beyond this license, contact:
+================================================================================
+12. No Warranty
+================================================================================
 
-OpenHours Legal
-sampleemail@openhours.me
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF
+ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE,
+NON-INFRINGEMENT, ACCURACY, AVAILABILITY, AND COURSE OF PERFORMANCE. NO
+MAINTAINER WARRANTS THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS, BE
+UNINTERRUPTED OR ERROR-FREE, BE FREE OF HARMFUL COMPONENTS, OR PRODUCE ANY
+EDUCATIONAL, ACADEMIC, OR PROFESSIONAL OUTCOME.
+
+================================================================================
+13. Limitation of Liability
+================================================================================
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE MAINTAINERS, OPENHOURS, AND
+THEIR LICENSORS WILL NOT BE LIABLE TO YOU FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF
+PROFITS, REVENUE, DATA, GOODWILL, USE, OR OTHER INTANGIBLE LOSSES, ARISING
+OUT OF OR RELATED TO THE SOFTWARE OR THIS LICENSE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES. THE MAXIMUM AGGREGATE LIABILITY OF THE
+MAINTAINERS UNDER THIS LICENSE WILL NOT EXCEED ONE HUNDRED U.S. DOLLARS
+($100). NOTHING IN THIS LICENSE LIMITS LIABILITY THAT CANNOT BE LIMITED BY
+LAW.
+
+================================================================================
+14. Governing Law and Venue
+================================================================================
+
+This license is governed by the laws of the State of California, United
+States, without regard to its conflict-of-law rules. The United Nations
+Convention on Contracts for the International Sale of Goods does not
+apply. Any dispute arising out of or related to this license that is not
+resolved by negotiation or mediation under Section 2.5 must be brought
+exclusively in the state or federal courts located in California. Each
+party submits to the personal jurisdiction of those courts and waives any
+objection to venue in those courts.
+
+================================================================================
+15. General
+================================================================================
+
+15.1 Entire Agreement.
+This license, together with the OpenHours Terms of Service and Privacy
+Policy as in effect from time to time, is the entire agreement between
+You and OpenHours regarding the Software and supersedes any prior or
+contemporaneous understandings on its subject matter.
+
+15.2 Severability.
+If any provision of this license is held unenforceable, the remaining
+provisions remain in full force and effect, and the unenforceable
+provision will be modified to the minimum extent necessary to make it
+enforceable while preserving its intent.
+
+15.3 No Waiver.
+The Maintainers' failure or delay in enforcing a provision is not a waiver
+of the right to enforce it later. A waiver must be in writing and signed
+by all three Maintainers to be effective.
+
+15.4 Assignment.
+You may not assign or transfer Your rights or obligations under this
+license without the prior written consent of the Maintainers; any
+unauthorized assignment is void. The Maintainers, acting unanimously, may
+assign this license in connection with a Permitted Transfer or a Major
+Decision under Section 2.3.
+
+15.5 Headings; Construction.
+Section headings are for convenience only and do not affect interpretation.
+This license has been drafted by all three Maintainers jointly; no rule of
+construction against the drafter applies.
+
+15.6 Notices.
+Notice to OpenHours under this license must be sent to legal@openhours.me
+and is deemed received by all three Maintainers when sent. Notice to You
+may be sent to any address You have provided to OpenHours or, if none, by
+posting in this repository.
+
+================================================================================
+16. Contact
+================================================================================
+
+To request a license, report a security vulnerability, or correspond about
+this license, contact:
+
+  OpenHours Maintainers — Legal
+  Email:    legal@openhours.me
+  Security: security@openhours.me
+
+================================================================================
+Maintainers as of the date of this license:
+================================================================================
+
+  Emilio Scott
+  Colin Mcdonald
+  Elias Santillan
+
+Each Maintainer holds an equal, undivided one-third (1/3) ownership share
+in the Software. All Major Decisions require their unanimous consent.
