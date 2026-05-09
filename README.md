@@ -21,14 +21,17 @@ Professors answer the same questions over and over, students wait days for respo
 
 ---
 
-## Team & Task Split
+## Maintainers
 
-| Person | Responsibility |
-|---|---|
-| **Person 1** | Frontend — Landing page, student chat UI, auth pages |
-| **Person 2** | Professor dashboard — upload UI, analytics, admin panel, Supabase Auth + roles |
-| **Person 3** | AI/RAG backend — FastAPI, file parsing, LangChain + pgvector pipeline, `/ask` endpoint |
-| **Person 4** | Database + glue — Supabase schema, connect frontend↔backend, env vars, deployment |
+OpenHours is owned and maintained jointly by three maintainers in equal undivided one-third (1/3) shares. Routine work can be done by any one of us; material decisions about the project (licensing, sale, policy changes, sunsetting, fundraising, brand, etc.) require unanimous consent. See [`LICENSE`](./LICENSE) for the full governance terms.
+
+| Maintainer | Share | Role |
+|---|---|---|
+| **Emilio Scott** | 1/3 | Co-owner, joint decision-maker |
+| **Colin Mcdonald** | 1/3 | Co-owner, joint decision-maker |
+| **Elias Santillan** | 1/3 | Co-owner, joint decision-maker |
+
+Contact: `legal@openhours.me` (legal), `privacy@openhours.me` (privacy), `security@openhours.me` (security). Mail to any of these is deemed received by all three maintainers.
 
 ---
 
@@ -373,20 +376,22 @@ npx vercel
 
 ## Build Order (Hackathon Timeline)
 
-| Step | Task | Owner |
-|---|---|---|
-| 1 | Supabase setup, enable pgvector, run schema | Person 4 |
-| 2 | Next.js init, Tailwind | Person 1 |
-| 3 | Supabase Auth + professor/student roles | Person 2 |
-| 4 | FastAPI init + file upload + parsing | Person 3 |
-| 5 | RAG pipeline (OpenAI embeddings + pgvector) | Person 3 |
-| 6 | Professor upload UI | Person 2 |
-| 7 | Student chat UI | Person 1 |
-| 8 | Professor analytics dashboard | Person 2 |
-| 9 | Connect frontend ↔ backend | Person 4 |
-| 10 | Landing / onboarding page | Person 1 |
-| 11 | Deploy frontend + backend | Person 4 |
-| 12 | Polish + demo prep | Everyone |
+Built jointly by the three maintainers.
+
+| Step | Task |
+|---|---|
+| 1 | Supabase setup, enable pgvector, run schema |
+| 2 | Next.js init, Tailwind |
+| 3 | Supabase Auth + professor/student roles |
+| 4 | FastAPI init + file upload + parsing |
+| 5 | RAG pipeline (OpenAI embeddings + pgvector) |
+| 6 | Professor upload UI |
+| 7 | Student chat UI |
+| 8 | Professor analytics dashboard |
+| 9 | Connect frontend ↔ backend |
+| 10 | Landing / onboarding page |
+| 11 | Deploy frontend + backend |
+| 12 | Polish + demo prep |
 
 ---
 
