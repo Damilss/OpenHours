@@ -1,6 +1,6 @@
 OpenHours Proprietary Source License
 
-Version 1.0 — Last updated: May 9, 2026
+Version 1.0 — Last updated: May 12, 2026
 
 Copyright (c) 2026 Emilio Scott, Colin Mcdonald, and Elias Santillan
 (collectively, the "Maintainers"). All rights reserved.
@@ -156,6 +156,47 @@ dashboards, sub-processor accounts, and financial records (if any). No
 Maintainer may unilaterally lock another Maintainer out of any system that
 is necessary to participate in governance under this Section 2.
 
+2.8 Voluntary Contributions of Time and Effort.
+No Maintainer is required to contribute any minimum amount of time, labor,
+or attention to OpenHours. Contributions of time and effort are voluntary.
+Without limiting the generality of the foregoing, Colin Mcdonald may be
+inactive during academic or employment commitments without penalty, removal,
+forfeiture, or loss of ownership, and the same principle applies to each
+other Maintainer.
+
+2.9 No Financial Obligation.
+No Maintainer is obligated to contribute funds, incur expenses, advance
+capital, guarantee any obligation of OpenHours, or assume any financial
+liability on behalf of OpenHours or the other Maintainers, unless that
+Maintainer separately agrees in writing to do so. A Maintainer's voluntary
+payment of an expense on one occasion does not create an obligation to do
+so on any future occasion.
+
+2.10 No Individual Operational Responsibility.
+No Maintainer is individually responsible for legal compliance, regulatory
+filings, user support, privacy operations, security operations, incident
+response, accounting, tax, or any other operational obligation of
+OpenHours, unless that Maintainer explicitly assumes the responsibility in
+writing. Responsibilities not so assumed are joint responsibilities of the
+active Maintainers, to be allocated by unanimous agreement.
+
+2.11 No Unilateral Binding Acts.
+No Maintainer may, acting alone, and without the unanimous, documented
+written consent of the Maintainers:
+
+  (a) enter into any contract, agreement, memorandum of understanding, or
+      similar binding instrument on behalf of OpenHours;
+  (b) incur expenses chargeable to OpenHours or to the other Maintainers;
+  (c) onboard users to, or grant production access in, the production
+      Service; or
+  (d) collect, process, store, or transmit real user data on behalf of
+      OpenHours.
+
+A purported act in violation of this Section 2.11 is void as against
+OpenHours and the non-consenting Maintainers, who incur no liability by
+reason of it. This Section 2.11 supplements, and does not limit, the
+unanimity requirements of Section 2.3.
+
 ================================================================================
 3. Maintainer Changes
 ================================================================================
@@ -228,6 +269,60 @@ the absent Maintainer's economic interest.
 3.6 Limit on Maintainer Count.
 Without unanimous, documented consent under Section 2.3(i), the number of
 Maintainers will not exceed three at any time.
+
+3.7 Inactive Status.
+A Maintainer may elect inactive status at any time by giving written notice
+to the other Maintainers. During inactive status:
+
+  (a) the inactive Maintainer has no obligation to participate in Routine
+      Operations under Section 2.2;
+  (b) the inactive Maintainer has no obligation to respond to, deliberate
+      on, or vote on any proposed Major Decision under Section 2.3; and
+  (c) the inactive Maintainer's non-response does not block a proposed
+      Major Decision, and Section 2.3 is, with respect to that Maintainer
+      only and for the duration of inactive status, treated as satisfied if
+      the proposed Major Decision is unanimously consented to by the
+      remaining active Maintainers, provided that the inactive Maintainer
+      received reasonable written notice (not less than fourteen (14) days)
+      of the proposed Major Decision and did not affirmatively object.
+
+Notwithstanding clause (c), the affirmative written consent of the inactive
+Maintainer remains required for any Major Decision that (i) transfers,
+encumbers, dilutes, or otherwise materially diminishes the inactive
+Maintainer's ownership share or economic interest, (ii) removes the
+inactive Maintainer under Section 3.4, or (iii) imposes financial,
+indemnification, or personal-liability obligations on the inactive
+Maintainer individually. An inactive Maintainer retains their full
+ownership share and confidentiality obligations and may return to active
+status at any time by written notice to the other Maintainers.
+
+3.8 Resignation with Relinquishment of Decision Rights.
+In addition to withdrawal under Section 3.1 and inactive status under
+Section 3.7, a Maintainer may, by written notice to the other Maintainers,
+resign and permanently relinquish all decision-making rights under
+Section 2 (including the right to consent to or block Major Decisions)
+while either (a) retaining their ownership share or (b) transferring it
+pursuant to a Permitted Transfer under Section 3.3. A Maintainer who has
+resigned under this Section 3.8:
+
+  (a) is released from any ongoing obligation to participate in Routine
+      Operations or governance, including any obligation to consent to
+      Major Decisions, except that the affirmative written consent of the
+      resigning Maintainer remains required for any Major Decision that
+      transfers, encumbers, dilutes, or otherwise materially diminishes
+      their ownership share or economic interest for so long as they
+      retain that share;
+  (b) remains bound by the confidentiality obligations of Section 2.6 on
+      the terms set out in Section 3.2(c); and
+  (c) is treated, for purposes of any unanimity requirement in this
+      license, as not counted in the quorum, such that unanimous consent
+      of the remaining Maintainers satisfies that requirement, subject to
+      clause (a) above.
+
+Resignation under this Section 3.8 is irrevocable as to the relinquished
+decision rights; a former Maintainer who wishes to resume governance may
+do so only by being readmitted as a Maintainer under Section 3.3 with the
+unanimous, documented consent of the then-current Maintainers.
 
 ================================================================================
 4. Limited Permission to View and Evaluate
